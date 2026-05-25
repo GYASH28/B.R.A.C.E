@@ -1,0 +1,43 @@
+# B.R.A.C.E. — Core Dependencies
+beautifulsoup4
+comtypes; platform_system == "Windows"
+duckduckgo-search
+google-genai
+google-generativeai
+mss
+numpy
+opencv-python
+pillow
+playwright
+psutil
+pyautogui
+pycaw; platform_system == "Windows"
+pygetwindow
+pyperclip
+pyqt6
+python-dotenv
+python-pptx
+requests
+send2trash
+sounddevice
+win10toast; platform_system == "Windows"
+youtube-transcript-api
+pywinauto; platform_system == "Windows"
+pyinstaller
+pyttsx3
+SpeechRecognition
+wikipedia
+pyjokes
+
+# Optional: File Processing
+# pdfplumber          # PDF text extraction (alternative: PyPDF2)
+# python-docx         # Word document processing
+# pandas              # CSV/Excel data analysis
+# openpyxl            # Excel file support for pandas
+# pydub               # Audio file processing (requires ffmpeg)
+
+# Optional: Game Updater
+# vdf                 # Steam VDF config file parsing
+
+# Optional: System Control
+# plyer               # Cross-platform notifications

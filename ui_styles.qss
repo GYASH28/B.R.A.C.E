@@ -1,0 +1,170 @@
+/* B.R.A.C.E. — Premium Dark Futuristic Theme */
+/* Global QSS Stylesheet */
+
+/* ── Root ──────────────────────────────────────────────── */
+QWidget#root {
+    background: qlineargradient(x1:0,y1:0,x2:1,y2:1,
+        stop:0 #050a15, stop:0.5 #0a1122, stop:1 #02040a);
+    color: #f0faff;
+}
+
+/* ── Scrollbars ────────────────────────────────────────── */
+QScrollArea {
+    background: transparent;
+    border: none;
+}
+QScrollBar:vertical {
+    background: transparent;
+    width: 6px;
+    margin: 4px 1px;
+}
+QScrollBar::handle:vertical {
+    background: rgba(35,119,156,120);
+    border-radius: 3px;
+    min-height: 30px;
+}
+QScrollBar::handle:vertical:hover {
+    background: rgba(0,217,255,140);
+}
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    height: 0;
+}
+QScrollBar:horizontal {
+    background: transparent;
+    height: 6px;
+    margin: 1px 4px;
+}
+QScrollBar::handle:horizontal {
+    background: rgba(35,119,156,120);
+    border-radius: 3px;
+    min-width: 30px;
+}
+QScrollBar::handle:horizontal:hover {
+    background: rgba(0,217,255,140);
+}
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+    width: 0;
+}
+
+/* ── Inputs ────────────────────────────────────────────── */
+QLineEdit, QPlainTextEdit {
+    background: rgba(10, 25, 45, 180);
+    color: #f0faff;
+    border: 1px solid rgba(22, 64, 95, 150);
+    border-radius: 10px;
+    padding: 10px 14px;
+    selection-background-color: #1677ff;
+    font-size: 10pt;
+}
+QLineEdit:focus, QPlainTextEdit:focus {
+    border: 1px solid #00d9ff;
+    background: rgba(12, 30, 55, 220);
+}
+QPlainTextEdit {
+    padding: 10px 12px;
+}
+
+/* ── ComboBox ──────────────────────────────────────────── */
+QComboBox {
+    background: rgba(5,18,34,220);
+    color: #e8fbff;
+    border: 1px solid #16405f;
+    border-radius: 8px;
+    padding: 8px 12px;
+    min-height: 20px;
+}
+QComboBox:hover {
+    border: 1px solid #23779c;
+}
+QComboBox:focus {
+    border: 1px solid #00d9ff;
+}
+QComboBox::drop-down {
+    border: none;
+    width: 28px;
+}
+QComboBox QAbstractItemView {
+    background: #0a1628;
+    color: #e8fbff;
+    border: 1px solid #16405f;
+    border-radius: 6px;
+    padding: 4px;
+    selection-background-color: rgba(0,217,255,30);
+    selection-color: #63f4ff;
+    outline: none;
+}
+
+/* ── Checkboxes ────────────────────────────────────────── */
+QCheckBox {
+    color: #9bc7d5;
+    spacing: 8px;
+    font-size: 9pt;
+}
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #23779c;
+    border-radius: 5px;
+    background: #06101e;
+}
+QCheckBox::indicator:hover {
+    border: 1px solid #00d9ff;
+}
+QCheckBox::indicator:checked {
+    background: qlineargradient(x1:0,y1:0,x2:1,y2:1,
+        stop:0 #00d9ff, stop:1 #1677ff);
+    border-color: #00d9ff;
+}
+
+/* ── Buttons ───────────────────────────────────────────── */
+QPushButton {
+    background: qlineargradient(x1:0,y1:0,x2:0,y2:1, stop:0 rgba(20,45,75,220), stop:1 rgba(10,25,45,220));
+    color: #f0faff;
+    border: 1px solid rgba(35, 119, 156, 120);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-weight: 600;
+    font-size: 9pt;
+}
+QPushButton:hover {
+    background: qlineargradient(x1:0,y1:0,x2:0,y2:1, stop:0 rgba(0,217,255,40), stop:1 rgba(0,217,255,10));
+    border: 1px solid #00d9ff;
+    color: #ffffff;
+}
+QPushButton:pressed {
+    background: rgba(22,119,255,60);
+    border: 1px solid #1677ff;
+}
+QPushButton:disabled {
+    background: rgba(5,15,28,150);
+    color: #456478;
+    border: 1px solid #0d2840;
+}
+
+/* ── Glass Panels ──────────────────────────────────────── */
+QWidget#glassPanel, QWidget#glassCard {
+    background: rgba(10, 25, 45, 160);
+    border: 1px solid rgba(22, 64, 95, 120);
+    border-radius: 12px;
+}
+
+/* ── Tooltips ──────────────────────────────────────────── */
+QToolTip {
+    background: #0a1628;
+    color: #e8fbff;
+    border: 1px solid #16405f;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 9pt;
+}
+
+/* ── Message Box ───────────────────────────────────────── */
+QMessageBox {
+    background: #07111f;
+    color: #e8fbff;
+}
+QMessageBox QPushButton {
+    min-width: 80px;
+}

@@ -1,0 +1,18 @@
+{
+  "theme": "High contrast",
+  "accent_color": "#00d9ff",
+  "animation_level": "Balanced",
+  "boot_animation": true,
+  "default_provider": "gemini",
+  "default_model": "gemini-2.5-flash",
+  "response_mode": "Balanced",
+  "safe_mode": true,
+  "memory_enabled": true,
+  "log_level": "INFO",
+  "startup_page": "Voice Assistant",
+  "assistant_name": "B.R.A.C.E.",
+  "music_dir": "~/Music",
+  "notes_dir": "./outputs/notes",
+  "legacy_voice_enabled": false,
+  "legacy_stt_enabled": false
+}

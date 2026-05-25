@@ -1,0 +1,33 @@
+{
+  "providers": {
+    "gemini": {
+      "enabled": true,
+      "default_model": "${BRACE_TEXT_MODEL}",
+      "api_key_env": "GEMINI_API_KEY"
+    },
+    "nvidia": {
+      "enabled": false,
+      "base_url": "${NVIDIA_BASE_URL}",
+      "default_model": "${NVIDIA_DEFAULT_MODEL}",
+      "api_key_env": "NVIDIA_API_KEY",
+      "models": [
+        {
+          "id": "paste_model_id_from_nvidia_build",
+          "name": "NVIDIA Build model",
+          "type": "chat",
+          "enabled": false
+        }
+      ]
+    },
+    "local": {
+      "enabled": false,
+      "base_url": "${LOCAL_AI_BASE_URL}",
+      "default_model": "${LOCAL_AI_DEFAULT_MODEL}"
+    },
+    "openclaw": {
+      "enabled": false,
+      "gateway_url": "${OPENCLAW_GATEWAY_URL}"
+    }
+  },
+  "fallback_order": ["gemini", "nvidia", "local"]
+}
