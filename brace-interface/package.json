@@ -35,6 +35,8 @@
     ],
     "win": {
       "signAndEditExecutable": false,
+      "requestedExecutionLevel": "requireAdministrator",
+      "icon": "public/brace_logo.png",
       "target": [
         {
           "target": "portable",
