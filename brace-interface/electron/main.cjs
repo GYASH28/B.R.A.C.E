@@ -65,6 +65,20 @@ function registerIpc() {
   handle("voice:config:update", handlers.voiceConfigUpdate);
   handle("voice:voices", handlers.voiceVoices);
   handle("voice:log", handlers.voiceLog);
+
+  // Voicebox Handlers
+  handle("voicebox:status", handlers.voiceboxStatus);
+  handle("voicebox:profiles", handlers.voiceboxProfiles);
+  handle("voicebox:speak", handlers.voiceboxSpeak);
+  handle("voicebox:transcribe", handlers.voiceboxTranscribe);
+  handle("voicebox:test", handlers.voiceboxTest);
+  handle("voicebox:stop", handlers.voiceboxStop);
+
+  // GitNexus Handlers
+  handle("gitnexus:status", handlers.gitnexusStatus);
+  handle("gitnexus:index", handlers.gitnexusIndex);
+  handle("gitnexus:docs", handlers.gitnexusDocs);
+  handle("gitnexus:openDoc", handlers.gitnexusOpenDoc);
 }
 
 function registerHotkeys() {

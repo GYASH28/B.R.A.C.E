@@ -55,6 +55,20 @@ contextBridge.exposeInMainWorld("braceDesktop", {
   listVoiceOptions: () => invoke("voice:voices"),
   logVoiceEvent: (payload) => invoke("voice:log", payload),
   clearAllData: () => invoke("data:clear-all"),
+
+  // Voicebox
+  voiceboxStatus: () => invoke("voicebox:status"),
+  voiceboxProfiles: () => invoke("voicebox:profiles"),
+  voiceboxSpeak: (payload) => invoke("voicebox:speak", payload),
+  voiceboxTranscribe: (payload) => invoke("voicebox:transcribe", payload),
+  voiceboxTest: (payload) => invoke("voicebox:test", payload),
+  voiceboxStop: () => invoke("voicebox:stop"),
+
+  // GitNexus
+  gitnexusStatus: (payload) => invoke("gitnexus:status", payload),
+  gitnexusIndex: (payload) => invoke("gitnexus:index", payload),
+  gitnexusDocs: (payload) => invoke("gitnexus:docs", payload),
+  gitnexusOpenDoc: (payload) => invoke("gitnexus:openDoc", payload),
   onHotkey: (callback) => {
     const listener = (_event, name) => callback(name);
     ipcRenderer.on("brace:hotkey", listener);

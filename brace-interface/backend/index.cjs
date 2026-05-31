@@ -20,6 +20,7 @@ const folderTools = require("./tools/folderTools.cjs");
 const appTools = require("./tools/appTools.cjs");
 const systemTools = require("./tools/systemTools.cjs");
 const { createVoiceService } = require("./voice/voiceService.cjs");
+const { GitNexusService } = require("./gitnexus/gitnexusService.cjs");
 
 function cryptoId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
@@ -45,6 +46,7 @@ function createBackend({ app, dialog, shell, mainWindow }) {
   const memoryManager = createMemoryManager({ memoryDir: path.join(vaultDataDir, "memory") });
   const noteManager = createNoteManager({ notesDir: path.join(vaultDataDir, "notes") });
   const voiceService = createVoiceService({ stateStore, logger });
+  const gitnexusService = new GitNexusService({ stateStore, logger, pathGuard });
 
   const safeRoots = stateStore.readState().settings.safeFolders || [VAULT_PATH];
   const pathGuard = createPathGuard({ safeRoots });
@@ -303,6 +305,26 @@ function createBackend({ app, dialog, shell, mainWindow }) {
       voiceConfigUpdate: (patch) => voiceService.updateConfig(patch),
       voiceVoices: () => voiceService.listVoices(),
       voiceLog: ({ type, detail }) => voiceService.logEvent(type || "voice event", detail || {}),
+      voiceboxStatus: () => voiceService.status(),
+      voiceboxProfiles: () => voiceService.profiles(),
+      voiceboxSpeak: ({ text, options }) => voiceService.speak(text, options),
+      voiceboxTranscribe: ({ audioBuffer, options }) => voiceService.transcribe(Buffer.from(audioBuffer), options),
+      voiceboxTest: () => voiceService.test(),
+      voiceboxStop: () => {
+        logger.log("voice", "TTS playback stopped by user");
+        return { ok: true };
+      },
+      gitnexusStatus: ({ projectPath }) => gitnexusService.status(projectPath),
+      gitnexusIndex: ({ projectPath, mode }) => gitnexusService.index(projectPath, mode),
+      gitnexusDocs: ({ projectPath }) => gitnexusService.listDocs(projectPath),
+      gitnexusOpenDoc: async ({ filePath }) => {
+        const state = stateStore.readState();
+        requirePermission(state, "appLaunch");
+        const resolved = path.resolve(filePath);
+        await shell.openPath(resolved);
+        logger.log("gitnexus", `Opened documentation file: ${path.basename(resolved)}`);
+        return { ok: true };
+      },
     },
   };
 }
