@@ -42,6 +42,12 @@ type TopBarProps = {
   micActive: boolean;
   hasGeminiKey: boolean;
   systemInfo?: SystemInfo | null;
+  health?: {
+    electronConnected: boolean;
+    voiceboxConnected: boolean;
+    gitnexusConnected: boolean;
+    offlineMode: boolean;
+  };
 };
 
 type CommandButtonProps = {
@@ -190,13 +196,31 @@ export function Sidebar({ items, activePage, collapsed, onNavigate, onToggle }: 
   );
 }
 
-export function TopBar({ time, micActive, hasGeminiKey, systemInfo }: TopBarProps) {
+export function TopBar({ time, micActive, hasGeminiKey, systemInfo, health }: TopBarProps) {
+  const electronConnected = health?.electronConnected !== false; // Default to true if not passed
+  const voiceboxConnected = health?.voiceboxConnected === true;
+  const offlineMode = health?.offlineMode === true;
+
+  // Online condition: Electron bridge exists and (if in online/hybrid mode, voicebox or external AI key is available)
+  // Let's make it reflect whether core dependencies checked pass
+  const isHealthy = electronConnected && (voiceboxConnected || hasGeminiKey || offlineMode);
+
   return (
     <header className="relative z-10 flex min-h-16 items-center justify-between gap-4 border-b border-white/10 px-4 py-3 backdrop-blur-2xl lg:px-6">
       <div className="flex min-w-0 items-center gap-3">
-        <StatusBadge label="Online" tone="green" icon={<span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />} />
-        <StatusBadge label="Running locally" tone="cyan" />
-        <StatusBadge label={hasGeminiKey ? "Gemini armed" : "Gemini key needed"} tone={hasGeminiKey ? "purple" : "warn"} />
+        <StatusBadge 
+          label={isHealthy ? "Online" : "Offline"} 
+          tone={isHealthy ? "green" : "warn"} 
+          icon={<span className={`h-1.5 w-1.5 rounded-full ${isHealthy ? "bg-emerald-300" : "bg-amber-300"}`} />} 
+        />
+        <StatusBadge 
+          label={electronConnected ? "Running locally" : "Local engine offline"} 
+          tone={electronConnected ? "cyan" : "warn"} 
+        />
+        <StatusBadge 
+          label={offlineMode ? "Offline Mode" : hasGeminiKey ? "Gemini armed" : "Gemini key needed"} 
+          tone={offlineMode ? "muted" : hasGeminiKey ? "purple" : "warn"} 
+        />
       </div>
 
       <div className="hidden items-center gap-2 xl:flex">

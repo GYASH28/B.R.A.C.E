@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { Mic, Paperclip, Send, Square, VolumeX } from "lucide-react";
+import { Mic, Paperclip, Send, Square } from "lucide-react";
 import { VoiceOrb } from "../voice/VoiceOrb";
 import { VoiceStatusPill } from "../voice/VoiceStatusPill";
 import { QuickActionGrid } from "../components/QuickActionGrid";

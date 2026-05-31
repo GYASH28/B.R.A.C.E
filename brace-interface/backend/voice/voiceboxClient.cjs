@@ -66,7 +66,14 @@ class VoiceboxClient {
         // Local file path
         const filePath = json.file_path || json.filePath || json.path;
         if (filePath && typeof filePath === "string") {
-          return { ok: true, format: "file", filePath: filePath };
+          try {
+            const fs = require("node:fs");
+            const fileBuffer = fs.readFileSync(filePath);
+            return { ok: true, format: "buffer", audio: fileBuffer };
+          } catch (fileErr) {
+            console.warn(`[VoiceboxClient] Failed to read local file path: ${filePath}. Error: ${fileErr.message}`);
+            return { ok: true, format: "file", filePath: filePath };
+          }
         }
 
         return { ok: false, error: "Unrecognized JSON response schema from Voicebox.", details: json };

@@ -103,6 +103,9 @@ export type VoiceConfig = {
   onlineVoiceEnabled: boolean;
   saveRawAudio: boolean;
   saveTranscripts: boolean;
+  voiceProvider: string;
+  voiceboxBaseUrl: string;
+  voiceboxDefaultProfile: string;
 };
 
 export type VoiceStatus = {

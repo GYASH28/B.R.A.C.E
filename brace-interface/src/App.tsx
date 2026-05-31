@@ -8,14 +8,12 @@ import {
   Download,
   Edit3,
   EyeOff,
-  FileSearch,
   FolderOpen,
   Keyboard,
   ListChecks,
   Mic,
   Play,
   Plus,
-  Power,
   RefreshCw,
   Rocket,
   Search,
@@ -33,17 +31,17 @@ import {
   SettingsToggle,
   Sidebar,
   StatusBadge,
-  SystemMetricCard,
   TopBar,
 } from "./components/Interface";
 import { navItems } from "./data/appData";
 import { searchBrain } from "./lib/brain";
-import { VoiceControls } from "./voice/VoiceControls";
-import { VoiceOrb } from "./voice/VoiceOrb";
-import { VoiceSettings } from "./voice/VoiceSettings";
-import { VoiceStatusPill } from "./voice/VoiceStatusPill";
 import { useVoiceAgent } from "./voice/useVoiceAgent";
-import { voiceStateLabel } from "./voice/voiceStateStore";
+import { HomePage } from "./pages/HomePage";
+import { VoicePage } from "./pages/VoicePage";
+import { SystemIntelligencePage } from "./pages/SystemIntelligencePage";
+import { DiagnosticsPage } from "./pages/DiagnosticsPage";
+import { featureRegistry } from "./config/featureRegistry";
+import { ShieldAlert } from "lucide-react";
 import type {
   AppLauncherEntry,
   AgentTaskRecord,
@@ -190,15 +188,18 @@ export default function App() {
   const [fileResult, setFileResult] = useState("");
   const [fileBusy, setFileBusy] = useState(false);
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
-  const [systemError, setSystemError] = useState("");
-  const [systemBusy, setSystemBusy] = useState(false);
-  const [homeMode, setHomeMode] = useState("agent");
   const [taskOutput, setTaskOutput] = useState("");
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [paletteQuery, setPaletteQuery] = useState("");
   const [toast, setToast] = useState<ToastState>(null);
   const [lastFailedPrompt, setLastFailedPrompt] = useState("");
   const [loaded, setLoaded] = useState(false);
+  const [healthStatus, setHealthStatus] = useState({
+    electronConnected: false,
+    voiceboxConnected: false,
+    gitnexusConnected: false,
+    offlineMode: false,
+  });
 
   const hasGeminiKey = settings.geminiKey === "__saved__";
   const selectedFile = files.find((file) => file.id === selectedFileId) ?? files[0];
@@ -316,10 +317,44 @@ export default function App() {
 
   const voiceAgent = useVoiceAgent({ addMessage: addVoiceMessage, sendCommand: runAgentCommand });
 
+  const runStartupHealthCheck = useCallback(async () => {
+    const electronConnected = Boolean(window.braceDesktop);
+    let voiceboxConnected = false;
+    let gitnexusConnected = false;
+
+    if (electronConnected && window.braceDesktop) {
+      try {
+        const vStatus = await window.braceDesktop.voiceboxStatus();
+        voiceboxConnected = Boolean(vStatus?.voiceboxConnected);
+      } catch (e) {
+        console.warn("Failed to check Voicebox health on startup:", e);
+      }
+      try {
+        const gStatus = await window.braceDesktop.gitnexusStatus({});
+        gitnexusConnected = Boolean(gStatus?.ok);
+      } catch (e) {
+        console.warn("Failed to check GitNexus health on startup:", e);
+      }
+    }
+
+    setHealthStatus({
+      electronConnected,
+      voiceboxConnected,
+      gitnexusConnected,
+      offlineMode: settings.offlineMode,
+    });
+  }, [settings.offlineMode]);
+
   useEffect(() => {
     const timer = window.setInterval(() => setTime(formatTime()), 1000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (loaded) {
+      void runStartupHealthCheck();
+    }
+  }, [loaded, settings.offlineMode, runStartupHealthCheck]);
 
   useEffect(() => {
     const load = async () => {
@@ -338,10 +373,11 @@ export default function App() {
       setLogs(state.logs ?? []);
       setMessages(state.chatHistory?.length ? state.chatHistory : initialMessages);
       void refreshWorkspaceData();
+      await runStartupHealthCheck();
       setLoaded(true);
     };
     void load();
-  }, []);
+  }, [runStartupHealthCheck]);
 
   useEffect(() => {
     if (!loaded || !window.braceDesktop) return;
@@ -393,15 +429,11 @@ export default function App() {
 
   const refreshSystem = async () => {
     if (!window.braceDesktop || !permissions.systemInfo?.enabled) return;
-    setSystemBusy(true);
-    setSystemError("");
     try {
       const response = (await window.braceDesktop.systemInfo()) as { ok: boolean; info: SystemInfo };
       setSystemInfo(response.info);
     } catch (error) {
-      setSystemError(error instanceof Error ? error.message : "System info failed.");
-    } finally {
-      setSystemBusy(false);
+      console.warn("Failed to retrieve system info:", error);
     }
   };
 
@@ -605,6 +637,44 @@ export default function App() {
   ].filter((item) => item.label.toLowerCase().includes(paletteQuery.toLowerCase()));
 
   const renderPage = () => {
+    // Check feature registry status
+    const featDef = featureRegistry.find((f) => f.id === activePage);
+    if (featDef && featDef.status === "setup-required") {
+      return (
+        <div className="mx-auto max-w-2xl text-left py-12 px-4">
+          <GlassCard className="p-8 border-amber-300/30 bg-amber-300/5 text-amber-100 space-y-4">
+            <div className="flex items-center gap-3">
+              <ShieldAlert className="text-amber-400" size={28} />
+              <h1 className="text-2xl font-semibold text-white font-sans">{featDef.label} Setup Required</h1>
+            </div>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              This feature is currently marked as setup required or coming soon.
+            </p>
+            {featDef.setupInstructions && (
+              <div className="rounded-xl bg-black/40 border border-white/10 p-4 font-mono text-xs text-amber-200 whitespace-pre-wrap leading-relaxed">
+                {featDef.setupInstructions}
+              </div>
+            )}
+          </GlassCard>
+        </div>
+      );
+    }
+    if (featDef && featDef.status === "disabled") {
+      return (
+        <div className="mx-auto max-w-2xl text-left py-12 px-4">
+          <GlassCard className="p-8 border-rose-300/30 bg-rose-300/5 text-rose-100 space-y-4">
+            <div className="flex items-center gap-3">
+              <EyeOff className="text-rose-400" size={28} />
+              <h1 className="text-2xl font-semibold text-white font-sans">{featDef.label} Disabled</h1>
+            </div>
+            <p className="text-slate-400 text-sm">
+              This feature has been disabled in the B.R.A.C.E configuration.
+            </p>
+          </GlassCard>
+        </div>
+      );
+    }
+
     switch (activePage) {
       case "chat":
         return (
@@ -628,7 +698,7 @@ export default function App() {
         );
       case "voice":
         return (
-          <VoiceSettings
+          <VoicePage
             browserVoiceOptions={voiceAgent.browserVoiceOptions}
             config={voiceAgent.config}
             devices={voiceAgent.devices}
@@ -672,16 +742,14 @@ export default function App() {
       case "tools":
         return <ToolsPage tools={tools} onRefresh={refreshWorkspaceData} />;
       case "projects":
-        return <ProjectsPage projects={projects} onAdd={async () => { const projectPath = window.prompt("Project folder path"); if (!projectPath) return; const project = (await window.braceDesktop?.addProject({ projectPath })) as ProjectInfo; setProjects((current) => [project, ...current.filter((item) => item.path !== project.path)]); await refreshLogs(); }} onRefresh={refreshWorkspaceData} />;
+        return <SystemIntelligencePage />;
       case "system":
         return (
-          <SystemPage
-            busy={systemBusy}
-            error={systemError}
-            info={systemInfo}
-            onEnable={() => void updatePermission("systemInfo", true)}
-            onRefresh={() => void refreshSystem()}
-            permissionEnabled={permissions.systemInfo?.enabled ?? false}
+          <DiagnosticsPage
+            settings={settings}
+            voiceStatus={voiceAgent.status}
+            onRefreshVoice={() => void voiceAgent.refreshVoiceStatus()}
+            systemInfo={systemInfo}
           />
         );
       case "tasks":
@@ -711,17 +779,14 @@ export default function App() {
           <HomePage
             desktopReady={isDesktop()}
             input={input}
-            mode={homeMode}
-            onNavigate={setActivePage}
-            onAttach={selectFiles}
             onInput={setInput}
-            onMode={setHomeMode}
             onSend={() => void sendMessage()}
-            onStopVoice={voiceAgent.stopAllAudio}
-            onVoice={() => void voiceAgent.startListening()}
-            provider={settings.offlineMode ? "offline" : settings.aiProvider}
-            safeMode={settings.safeMode}
+            onAttach={selectFiles}
+            onNavigate={setActivePage}
             voiceAgent={voiceAgent}
+            approvals={approvals}
+            onApprove={approveAgentAction}
+            onReject={rejectAgentAction}
           />
         );
     }
@@ -742,7 +807,7 @@ export default function App() {
           onToggle={() => setSidebarCollapsed((value) => !value)}
         />
         <section className="flex min-w-0 flex-1 flex-col">
-          <TopBar hasGeminiKey={hasGeminiKey || settings.aiProvider !== "gemini"} micActive={voiceAgent.listening} systemInfo={systemInfo} time={time} />
+          <TopBar hasGeminiKey={hasGeminiKey || settings.aiProvider !== "gemini"} micActive={voiceAgent.listening} systemInfo={systemInfo} time={time} health={healthStatus} />
           <PageShell pageKey={activePage}>{renderPage()}</PageShell>
         </section>
       </div>
@@ -767,110 +832,6 @@ export default function App() {
           ].join(" ")}
         >
           {toast.text}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function HomePage({
-  desktopReady,
-  input,
-  mode,
-  onAttach,
-  onInput,
-  onMode,
-  onNavigate,
-  onSend,
-  onStopVoice,
-  onVoice,
-  voiceAgent,
-}: {
-  desktopReady: boolean;
-  input: string;
-  mode: string;
-  onAttach: () => void;
-  onInput: (value: string) => void;
-  onMode: (mode: string) => void;
-  onNavigate: (page: PageId) => void;
-  onSend: () => void;
-  onStopVoice: () => void;
-  onVoice: () => void;
-  provider: string;
-  safeMode: boolean;
-  voiceAgent: ReturnType<typeof useVoiceAgent>;
-}) {
-  const voiceReady = voiceAgent.status?.fallbackActive ? "Browser fallback active" : `${voiceAgent.status?.ttsProvider ?? "Voice"} active`;
-  const statusText = voiceAgent.error || voiceStateLabel[voiceAgent.orbState] || voiceReady;
-  const quickChips: { label: string; page?: PageId; run?: () => void }[] = [
-    { label: "Open VS Code", page: "tasks" },
-    { label: "Search Files", page: "files" },
-    { label: "Summarize File", page: "files" },
-    { label: "Plan My Day", run: () => { onInput("Plan my day."); onSend(); } },
-    { label: "Coding Agent", page: "projects" },
-    { label: "Voice Settings", page: "voice" },
-  ];
-
-  return (
-    <div className="home-orb-shell mx-auto flex min-h-[calc(100vh-7rem)] max-w-6xl flex-col items-center justify-center gap-7 px-2 text-center">
-      <div className="relative mt-4">
-        <div className="home-orb-halo" />
-        <VoiceOrb
-          isConnected={desktopReady}
-          isVoiceEnabled={voiceAgent.config.volume > 0}
-          onClick={voiceAgent.orbState === "speaking" ? onStopVoice : onVoice}
-          state={voiceAgent.orbState}
-          volumeLevel={voiceAgent.volumeLevel}
-        />
-      </div>
-
-      <div className="flex flex-col items-center gap-3">
-        <button onClick={() => onNavigate("voice")} className="outline-none">
-          <VoiceStatusPill
-            orbState={voiceAgent.orbState}
-            voiceboxStatus={voiceAgent.status?.voiceboxConnected ? "connected" : "offline"}
-            activeProvider={voiceAgent.status?.activeProvider ?? ""}
-          />
-        </button>
-      </div>
-
-      <div>
-        <p className="text-xs uppercase tracking-[0.28em] text-cyan-200">Brain / Responsive / Agentic / Companion / Engine</p>
-        <h1 className="mt-3 font-display text-5xl font-semibold text-white md:text-7xl">B.R.A.C.E</h1>
-        <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-slate-400">
-          {statusText}
-        </p>
-      </div>
-
-      <VoiceControls
-        input={input}
-        mode={mode}
-        onAttach={onAttach}
-        onInput={onInput}
-        onMode={onMode}
-        onNavigate={onNavigate}
-        onSend={onSend}
-        onStop={onStopVoice}
-        onVoice={onVoice}
-        orbState={voiceAgent.orbState}
-      />
-
-      <div className="flex max-w-3xl flex-wrap justify-center gap-2">
-        {quickChips.map((chip) => (
-          <button
-            className="rounded-full border border-white/10 bg-white/[0.045] px-4 py-2 text-sm text-slate-300 transition hover:border-cyan-300/30 hover:text-cyan-100"
-            key={chip.label}
-            onClick={() => (chip.run ? chip.run() : chip.page ? onNavigate(chip.page) : undefined)}
-            type="button"
-          >
-            {chip.label}
-          </button>
-        ))}
-      </div>
-
-      {(voiceAgent.partialTranscript || voiceAgent.transcript) && (
-        <div className="max-w-3xl rounded-2xl border border-cyan-300/15 bg-black/20 px-5 py-3 text-sm text-slate-300">
-          {voiceAgent.partialTranscript || voiceAgent.transcript}
         </div>
       )}
     </div>
@@ -1091,64 +1052,7 @@ function FilesPage({
   );
 }
 
-function SystemPage({
-  busy,
-  error,
-  info,
-  onEnable,
-  onRefresh,
-  permissionEnabled,
-}: {
-  busy: boolean;
-  error: string;
-  info: SystemInfo | null;
-  onEnable: () => void;
-  onRefresh: () => void;
-  permissionEnabled: boolean;
-}) {
-  if (!permissionEnabled) {
-    return (
-      <EmptyState
-        action="Enable system info"
-        icon={Database}
-        onAction={onEnable}
-        text="B.R.A.C.E needs your permission before reading system telemetry."
-        title="System monitor locked"
-      />
-    );
-  }
-  const metrics = [
-    { label: "CPU", value: info?.cpu ?? 0, detail: "Live CPU sample", icon: Database, tone: "cyan", graph: [12, 24, info?.cpu ?? 0, 31, 22, info?.cpu ?? 0] },
-    { label: "RAM", value: info?.ram ?? 0, detail: info?.ramDetail ?? "Loading", icon: Database, tone: "teal", graph: [40, 48, info?.ram ?? 0, 61, info?.ram ?? 0] },
-    { label: "Storage", value: info?.storage ?? 0, detail: info?.storageDetail ?? "Loading", icon: FileSearch, tone: "purple", graph: [60, 63, info?.storage ?? 0, info?.storage ?? 0] },
-    { label: "Network", value: info?.network ?? 0, detail: info?.networkDetail ?? "Loading", icon: Rocket, tone: "cyan", graph: [10, 15, info?.network ?? 0, 18, 12] },
-    { label: "GPU", value: info?.gpu ?? 0, detail: info?.gpuDetail ?? "Loading", icon: Bot, tone: "teal", graph: [0, info?.gpu ?? 0, 0, info?.gpu ?? 0] },
-    { label: "Battery", value: info?.battery ?? 100, detail: info?.batteryDetail ?? "Loading", icon: Power, tone: "purple", graph: [90, 91, info?.battery ?? 100, 92] },
-  ];
-  return (
-    <div className="mx-auto max-w-7xl space-y-6">
-      <GlassCard className="flex flex-wrap items-center justify-between gap-4 p-6">
-        <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-cyan-200">Local PC monitor</p>
-          <h1 className="mt-2 text-3xl font-semibold text-white">System telemetry</h1>
-          <p className="mt-3 text-slate-400">
-            {info ? `${info.os.platform} ${info.os.release} · ${info.os.arch} · ${info.os.hostname}` : "Loading system data..."}
-          </p>
-        </div>
-        <button className="secondary-button" onClick={onRefresh} type="button">
-          <RefreshCw className={busy ? "animate-spin" : ""} size={17} />
-          Refresh
-        </button>
-      </GlassCard>
-      {error && <p className="rounded-2xl border border-rose-300/25 bg-rose-300/10 p-4 text-rose-100">{error}</p>}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {metrics.map((metric) => (
-          <SystemMetricCard key={metric.label} {...metric} />
-        ))}
-      </div>
-    </div>
-  );
-}
+
 
 function AgentTasksPage({ approvals, onApprove, onReject, tasks }: { approvals: ApprovalRequest[]; onApprove: (approvalId: string) => Promise<void>; onReject: (approvalId: string) => Promise<void>; tasks: AgentTaskRecord[] }) {
   return (
@@ -1269,33 +1173,7 @@ function ToolsPage({ onRefresh, tools }: { onRefresh: () => void; tools: ToolDef
   );
 }
 
-function ProjectsPage({ onAdd, onRefresh, projects }: { onAdd: () => void; onRefresh: () => void; projects: ProjectInfo[] }) {
-  return (
-    <div className="mx-auto max-w-7xl space-y-6">
-      <GlassCard className="flex flex-wrap items-center justify-between gap-4 p-6">
-        <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-cyan-200">Coding projects</p>
-          <h1 className="mt-2 text-3xl font-semibold text-white">Project workspace memory</h1>
-        </div>
-        <div className="flex gap-2">
-          <button className="secondary-button" onClick={onRefresh} type="button"><RefreshCw size={16} /> Refresh</button>
-          <button className="primary-button" onClick={onAdd} type="button"><Plus size={17} /> Add path</button>
-        </div>
-      </GlassCard>
-      <div className="grid gap-4 md:grid-cols-2">
-        {projects.map((project) => (
-          <GlassCard className="p-5" key={project.path}>
-            <StatusBadge label={project.type} tone="purple" />
-            <h2 className="mt-3 font-semibold text-white">{project.name}</h2>
-            <p className="mt-2 break-all text-xs text-slate-500">{project.path}</p>
-            <p className="mt-4 text-sm text-slate-400">Scripts: {Object.keys(project.scripts || {}).join(", ") || "none detected"}</p>
-            <p className="mt-2 text-sm text-slate-500">Git: {project.git?.isRepo ? project.git.status || "clean" : "not a repo"}</p>
-          </GlassCard>
-        ))}
-      </div>
-    </div>
-  );
-}
+
 
 function TasksPage({
   addTask,

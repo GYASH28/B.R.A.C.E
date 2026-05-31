@@ -21,6 +21,9 @@ export const defaultVoiceConfig: VoiceConfig = {
   onlineVoiceEnabled: false,
   saveRawAudio: false,
   saveTranscripts: false,
+  voiceProvider: "voicebox",
+  voiceboxBaseUrl: "http://127.0.0.1:17493",
+  voiceboxDefaultProfile: "",
 };
 
 export const voiceStateLabel: Record<VoiceOrbState, string> = {

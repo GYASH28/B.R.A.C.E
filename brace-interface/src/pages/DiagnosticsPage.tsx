@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Gauge, RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
+import { RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
 import { DiagnosticsCheckCard, type DiagnosticsCheckStatus } from "../components/DiagnosticsCheckCard";
 import type { SettingsState, VoiceStatus } from "../types";
 
@@ -42,7 +42,7 @@ export function DiagnosticsPage({ settings, voiceStatus, onRefreshVoice, systemI
       return;
     }
     try {
-      const response = await window.braceDesktop.state();
+      const response = (await window.braceDesktop.state()) as any;
       if (response && response.projects) {
         setGitState("pass");
       } else {

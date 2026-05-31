@@ -12,12 +12,22 @@ type RecorderOptions = {
 
 type SpeechRecognitionCtor = new () => SpeechRecognition;
 
-export function useAudioRecorder({ config, onError, onFinalTranscript, onPartialTranscript, onVoiceEnd, onVoiceStart }: RecorderOptions) {
+export function useAudioRecorder({
+  config,
+  onError,
+  onFinalTranscript,
+  onPartialTranscript,
+  onVoiceEnd,
+  onVoiceStart,
+}: RecorderOptions) {
   const [listening, setListening] = useState(false);
   const [volumeLevel, setVolumeLevel] = useState(0);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
+
   const streamRef = useRef<MediaStream | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -25,6 +35,7 @@ export function useAudioRecorder({ config, onError, onFinalTranscript, onPartial
   const silenceTimerRef = useRef<number | null>(null);
   const speechStartedAtRef = useRef(0);
   const lastTranscriptRef = useRef("");
+  const fallbackTranscriptRef = useRef("");
 
   const refreshDevices = useCallback(async () => {
     if (!navigator.mediaDevices?.enumerateDevices) return;
@@ -37,12 +48,33 @@ export function useAudioRecorder({ config, onError, onFinalTranscript, onPartial
     animationRef.current = 0;
     if (silenceTimerRef.current) window.clearTimeout(silenceTimerRef.current);
     silenceTimerRef.current = null;
-    recognitionRef.current?.stop();
-    recognitionRef.current = null;
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
-    void audioContextRef.current?.close();
-    audioContextRef.current = null;
+    
+    // Stop recognition
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {}
+      recognitionRef.current = null;
+    }
+
+    // Stop MediaRecorder
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      try {
+        mediaRecorderRef.current.stop();
+      } catch (e) {}
+      mediaRecorderRef.current = null;
+    }
+
+    // Stop media tracks
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
+    if (audioContextRef.current) {
+      void audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
     analyserRef.current = null;
     setListening(false);
     setVolumeLevel(0);
@@ -55,6 +87,7 @@ export function useAudioRecorder({ config, onError, onFinalTranscript, onPartial
     if (!analyser) return;
     const data = new Uint8Array(analyser.fftSize);
     const tick = () => {
+      if (!analyserRef.current) return;
       analyser.getByteTimeDomainData(data);
       let sum = 0;
       for (const value of data) {
@@ -64,6 +97,7 @@ export function useAudioRecorder({ config, onError, onFinalTranscript, onPartial
       const rms = Math.sqrt(sum / data.length);
       const nextVolume = Math.min(1, rms * 8);
       setVolumeLevel(nextVolume);
+
       if (nextVolume > config.vadSensitivity) {
         if (!speechStartedAtRef.current) {
           speechStartedAtRef.current = performance.now();
@@ -84,8 +118,28 @@ export function useAudioRecorder({ config, onError, onFinalTranscript, onPartial
     tick();
   }, [cleanup, config.continuousListening, config.minSpeechMs, config.silenceTimeoutMs, config.vadSensitivity, onVoiceEnd, onVoiceStart]);
 
+  const getSupportedMimeType = (): { mimeType: string; extension: string } => {
+    const types = [
+      { mime: "audio/webm;codecs=opus", ext: "webm" },
+      { mime: "audio/webm", ext: "webm" },
+      { mime: "audio/ogg;codecs=opus", ext: "ogg" },
+      { mime: "audio/wav", ext: "wav" },
+      { mime: "audio/mp4", ext: "m4a" }
+    ];
+    for (const type of types) {
+      if (MediaRecorder.isTypeSupported(type.mime)) {
+        return { mimeType: type.mime, extension: type.ext };
+      }
+    }
+    return { mimeType: "", extension: "wav" }; // Fallback default
+  };
+
   const start = useCallback(async () => {
     cleanup();
+    audioChunksRef.current = [];
+    fallbackTranscriptRef.current = "";
+    lastTranscriptRef.current = "";
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -107,44 +161,101 @@ export function useAudioRecorder({ config, onError, onFinalTranscript, onPartial
       setListening(true);
       monitorVolume();
 
-      const speechWindow = window as typeof window & { SpeechRecognition?: SpeechRecognitionCtor; webkitSpeechRecognition?: SpeechRecognitionCtor };
-      const Recognition = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
-      if (!Recognition) {
-        onError?.("Speech recognition is unavailable. Browser Fallback mode needs Chromium speech support; type the transcript manually.");
-        return;
-      }
-      const recognition = new Recognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = config.language || "en-IN";
-      recognition.onresult = (event) => {
-        const text = Array.from(event.results).map((result) => result[0]?.transcript ?? "").join(" ").trim();
-        if (!text) return;
-        onPartialTranscript?.(text);
-        const last = event.results[event.results.length - 1];
-        if (last?.isFinal && text !== lastTranscriptRef.current) {
-          lastTranscriptRef.current = text;
-          onFinalTranscript(text);
-          if (!config.continuousListening) cleanup();
+      // SNIFF MIME TYPES FOR MEDIA RECORDER
+      const { mimeType, extension } = getSupportedMimeType();
+      console.log(`[AudioRecorder] Sniffed MIME type: "${mimeType}", Extension: "${extension}", Sample Rate: ${audioContext.sampleRate}Hz`);
+
+      const options = mimeType ? { mimeType } : undefined;
+      const mediaRecorder = new MediaRecorder(stream, options);
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
         }
       };
-      recognition.onerror = () => onError?.("Speech recognition failed. Try again, check microphone permission, or switch fallback mode.");
-      recognition.onend = () => {
-        if (streamRef.current && config.continuousListening) recognition.start();
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType || "audio/wav" });
+        const arrayBuffer = await audioBlob.arrayBuffer();
+        
+        // 1. TRY VOICEBOX STT FIRST
+        if (config.voiceProvider === "voicebox" && window.braceDesktop?.voiceboxTranscribe) {
+          try {
+            console.log(`[AudioRecorder] Sending ${audioBlob.size} bytes of "${audioBlob.type}" audio to Voicebox STT...`);
+            const status = await window.braceDesktop.voiceboxStatus();
+            
+            if (status.voiceboxConnected) {
+              const res = await window.braceDesktop.voiceboxTranscribe({
+                audioBuffer: arrayBuffer,
+                options: { format: extension }
+              });
+              if (res.ok && res.text) {
+                console.log(`[AudioRecorder] Voicebox transcription succeeded: "${res.text}"`);
+                onFinalTranscript(res.text);
+                return;
+              }
+            }
+          } catch (err: any) {
+            console.warn(`[AudioRecorder] Voicebox STT call failed: ${err.message}. Falling back to browser SpeechRecognition.`);
+          }
+        }
+
+        // 2. FALLBACK TO BROWSER TRANSCRIPT
+        console.log(`[AudioRecorder] Using browser fallback transcription: "${fallbackTranscriptRef.current}"`);
+        if (fallbackTranscriptRef.current) {
+          onFinalTranscript(fallbackTranscriptRef.current);
+        } else {
+          onError?.("No transcription returned. Check voice settings or start Voicebox server.");
+        }
       };
-      recognitionRef.current = recognition;
-      recognition.start();
+
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start(250); // Capture in 250ms chunks
+
+      // Start Browser Speech Recognition in parallel for real-time partial feedback
+      const speechWindow = window as typeof window & { SpeechRecognition?: SpeechRecognitionCtor; webkitSpeechRecognition?: SpeechRecognitionCtor };
+      const Recognition = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+      
+      if (Recognition) {
+        const recognition = new Recognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = config.language || "en-IN";
+        
+        recognition.onresult = (event) => {
+          const text = Array.from(event.results).map((result) => result[0]?.transcript ?? "").join(" ").trim();
+          if (!text) return;
+          onPartialTranscript?.(text);
+          fallbackTranscriptRef.current = text;
+          
+          const last = event.results[event.results.length - 1];
+          if (last?.isFinal && text !== lastTranscriptRef.current) {
+            lastTranscriptRef.current = text;
+          }
+        };
+
+        recognition.onerror = () => {
+          console.warn("[AudioRecorder] SpeechRecognition error");
+        };
+
+        recognitionRef.current = recognition;
+        recognition.start();
+      }
+
+      // Max recording timeout safety
       window.setTimeout(() => {
         if (streamRef.current) {
-          onError?.("Max recording time reached. Stopping microphone.");
+          onError?.("Max recording time reached.");
           cleanup();
         }
       }, config.maxRecordingMs);
+
     } catch (error) {
       cleanup();
       onError?.(error instanceof Error ? `Microphone failed: ${error.message}` : "Microphone failed.");
     }
-  }, [cleanup, config.continuousListening, config.language, config.maxRecordingMs, monitorVolume, onError, onFinalTranscript, onPartialTranscript, refreshDevices, selectedDeviceId]);
+  }, [cleanup, config.continuousListening, config.language, config.maxRecordingMs, config.voiceProvider, monitorVolume, onError, onFinalTranscript, onPartialTranscript, refreshDevices, selectedDeviceId]);
 
   return { devices, listening, refreshDevices, selectedDeviceId, setSelectedDeviceId, start, stop: cleanup, volumeLevel };
 }
+export default useAudioRecorder;

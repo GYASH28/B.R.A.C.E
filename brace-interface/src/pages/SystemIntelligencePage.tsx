@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { Cpu, RefreshCw, FileText, Terminal, Check, Play, BookOpen, AlertTriangle } from "lucide-react";
-import type { PageId } from "../types";
+import { RefreshCw, FileText, Terminal, Check, Play, BookOpen, AlertTriangle } from "lucide-react";
 
 type GitNexusDoc = {
   id: string;
