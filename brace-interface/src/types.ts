@@ -251,3 +251,80 @@ export type ApprovalRequest = {
   plan: AgentTaskRecord;
   createdAt: string;
 };
+
+declare global {
+  interface Window {
+    braceDesktop?: {
+      platform: string;
+      appMode: string;
+      brainPathHint: string;
+      state: () => Promise<any>;
+      updateSettings: (patch: any) => Promise<any>;
+      saveSecret: (payload: { key: string; value: string }) => Promise<any>;
+      updatePermission: (payload: { name: string; enabled: boolean }) => Promise<any>;
+      listLogs: () => Promise<any[]>;
+      clearLogs: () => Promise<any>;
+      listChat: () => Promise<any[]>;
+      saveChat: (messages: any[]) => Promise<any>;
+      clearChat: () => Promise<any>;
+      askAi: (payload: { prompt: string }) => Promise<any>;
+      testAi: () => Promise<any>;
+      systemInfo: () => Promise<any>;
+      selectFiles: () => Promise<any>;
+      selectFolder: () => Promise<any>;
+      analyzeFile: (payload: any) => Promise<any>;
+      listTasks: () => Promise<any[]>;
+      saveTasks: (tasks: any[]) => Promise<any>;
+      runTask: (task: any) => Promise<any>;
+      listApps: () => Promise<any[]>;
+      addApp: () => Promise<any>;
+      deleteApp: (id: string) => Promise<any>;
+      launchApp: (app: any) => Promise<any>;
+      runAgent: (payload: any) => Promise<any>;
+      approveAgent: (payload: any) => Promise<any>;
+      rejectAgent: (payload: any) => Promise<any>;
+      cancelAgent: (payload: any) => Promise<any>;
+      listAgentTasks: () => Promise<any>;
+      listTools: () => Promise<any[]>;
+      dryRunTool: (payload: any) => Promise<any>;
+      listMemories: () => Promise<any[]>;
+      searchMemories: (payload: any) => Promise<any[]>;
+      saveMemory: (payload: any) => Promise<any>;
+      updateMemory: (payload: any) => Promise<any>;
+      deleteMemory: (payload: any) => Promise<any>;
+      listNotes: () => Promise<any[]>;
+      searchNotes: (payload: any) => Promise<any[]>;
+      createNote: (payload: any) => Promise<any>;
+      readNote: (payload: any) => Promise<any>;
+      updateNote: (payload: any) => Promise<any>;
+      deleteNote: (payload: any) => Promise<any>;
+      listProjects: () => Promise<any[]>;
+      addProject: (payload: any) => Promise<any>;
+      scanProject: (payload: any) => Promise<any>;
+      voiceStatus: () => Promise<any>;
+      getVoiceConfig: () => Promise<any>;
+      updateVoiceConfig: (payload: any) => Promise<any>;
+      listVoiceOptions: () => Promise<any>;
+      logVoiceEvent: (payload: any) => Promise<any>;
+      clearAllData: () => Promise<any>;
+      onHotkey: (callback: (name: string) => void) => () => void;
+      onAgentEvent: (callback: (payload: any) => void) => () => void;
+      onApprovalRequest: (callback: (payload: any) => void) => () => void;
+
+      // Voicebox
+      voiceboxStatus: () => Promise<any>;
+      voiceboxProfiles: () => Promise<any>;
+      voiceboxSpeak: (payload: { text: string; options?: any }) => Promise<any>;
+      voiceboxTranscribe: (payload: { audioBuffer: ArrayBuffer; options?: any }) => Promise<any>;
+      voiceboxTest: (payload?: any) => Promise<any>;
+      voiceboxStop: () => Promise<any>;
+
+      // GitNexus
+      gitnexusStatus: (payload: { projectPath?: string }) => Promise<any>;
+      gitnexusIndex: (payload: { projectPath?: string; mode?: "analyze" | "reindex" }) => Promise<any>;
+      gitnexusDocs: (payload: { projectPath?: string }) => Promise<any>;
+      gitnexusOpenDoc: (payload: { filePath: string }) => Promise<any>;
+    };
+  }
+}
+
