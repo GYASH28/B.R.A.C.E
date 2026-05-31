@@ -46,10 +46,10 @@ function createBackend({ app, dialog, shell, mainWindow }) {
   const memoryManager = createMemoryManager({ memoryDir: path.join(vaultDataDir, "memory") });
   const noteManager = createNoteManager({ notesDir: path.join(vaultDataDir, "notes") });
   const voiceService = createVoiceService({ stateStore, logger });
-  const gitnexusService = new GitNexusService({ stateStore, logger, pathGuard });
 
   const safeRoots = stateStore.readState().settings.safeFolders || [VAULT_PATH];
   const pathGuard = createPathGuard({ safeRoots });
+  const gitnexusService = new GitNexusService({ stateStore, logger, pathGuard });
   const toolRegistry = createToolRegistry({ shell });
   const toolRouter = createToolRouter(toolRegistry);
   const taskState = createTaskStateManager({ stateStore });

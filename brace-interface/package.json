@@ -1,7 +1,7 @@
 {
   "name": "brace-interface",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "productName": "B.R.A.C.E",
   "main": "electron/main.cjs",
   "type": "module",
