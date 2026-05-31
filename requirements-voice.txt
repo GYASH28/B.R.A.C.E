@@ -1,0 +1,11 @@
+# Optional local voice stack for B.R.A.C.E.
+# The app works without these through Browser Fallback mode.
+faster-whisper
+sounddevice
+numpy
+scipy
+onnxruntime
+silero-vad
+kokoro
+soundfile
+edge-tts

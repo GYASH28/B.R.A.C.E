@@ -1,0 +1,6 @@
+# B.R.A.C.E updater uses Python standard library by default.
+# Optional packages for future enhancement:
+beautifulsoup4>=4.12.0
+requests>=2.32.0
+feedparser>=6.0.11
+python-dateutil>=2.9.0

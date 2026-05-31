@@ -1,0 +1,28 @@
+/* B.R.A.C.E dashboard polish. Enable in Settings -> Appearance -> CSS snippets. */
+body {
+  --brace-accent: #54d6ff;
+  --brace-accent-2: #ffd166;
+  --brace-panel: rgba(21, 27, 35, 0.72);
+}
+
+.markdown-preview-view h1,
+.markdown-source-view.mod-cm6 .cm-line.HyperMD-header-1 {
+  letter-spacing: 0;
+}
+
+.markdown-preview-view .callout {
+  border-radius: 8px;
+}
+
+.markdown-preview-view table {
+  width: 100%;
+}
+
+.markdown-preview-view code {
+  border-radius: 6px;
+}
+
+.markdown-preview-view .dataview.table-view-table {
+  border-radius: 8px;
+  overflow: hidden;
+}

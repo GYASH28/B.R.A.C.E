@@ -1,0 +1,74 @@
+{
+  "name": "brace-interface",
+  "private": true,
+  "version": "1.0.0",
+  "productName": "B.R.A.C.E",
+  "main": "electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "test": "node --test backend/**/*.test.cjs",
+    "build": "tsc && vite build",
+    "desktop": "npm run build && electron .",
+    "dist:win": "npm run build && electron-builder --win portable --x64",
+    "preview": "vite preview",
+    "brace:setup": "node scripts/setup-brace.js",
+    "brace:dev": "vite",
+    "brace:voicebox": "node scripts/start-voicebox.js",
+    "brace:voicebox:check": "node scripts/check-voicebox.js",
+    "brace:index": "npx gitnexus analyze",
+    "brace:gitnexus": "npx gitnexus mcp",
+    "brace:health": "node scripts/health-check.js",
+    "brace:test": "node --test backend/__tests__/*.test.cjs"
+  },
+  "build": {
+    "appId": "local.brace.assistant",
+    "productName": "B.R.A.C.E",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "backend/**/*",
+      "package.json"
+    ],
+    "win": {
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "B.R.A.C.E-${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "B.R.A.C.E-${version}-${arch}.${ext}"
+    },
+    "asar": true
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "electron": "^42.2.0",
+    "electron-builder": "^26.8.1",
+    "playwright": "^1.60.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.12"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "@vitejs/plugin-react": "^6.0.2",
+    "framer-motion": "^12.40.0",
+    "lucide-react": "^1.16.0",
+    "mammoth": "^1.12.0",
+    "pdf-parse": "^2.4.5",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "systeminformation": "^5.31.6",
+    "tailwindcss": "^4.3.0"
+  }
+}

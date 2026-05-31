@@ -35,3 +35,15 @@ memory/long_term.json
 # Keep source packaging metadata
 !BRACE.spec
 !version_info.txt
+
+# Remote additions
+10_AUTOMATION_SYSTEM/state/*.json
+10_AUTOMATION_SYSTEM/logs/*.log
+*.key
+
+# Build and Release folders
+brace-interface/release/
+brace-interface/dist/
+release/
+_BRACE_DATA/
+

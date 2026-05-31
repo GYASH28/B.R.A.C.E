@@ -1,0 +1,56 @@
+{
+  "name": "B.R.A.C.E Daily Intelligence Workflow - Skeleton",
+  "nodes": [
+    {
+      "name": "Daily Cron",
+      "type": "n8n-nodes-base.cron",
+      "notes": "Run daily at 07:00"
+    },
+    {
+      "name": "RSS AI Sources",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "notes": "Read AI and technology feeds"
+    },
+    {
+      "name": "RSS World Sources",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "notes": "Read world and India feeds"
+    },
+    {
+      "name": "HTTP CWIT Official Pages",
+      "type": "n8n-nodes-base.httpRequest",
+      "notes": "Fetch CWIT/MSBTE/DTE/AICTE pages"
+    },
+    {
+      "name": "Normalize Metadata",
+      "type": "n8n-nodes-base.function",
+      "notes": "Add category, reliability, tags"
+    },
+    {
+      "name": "Duplicate Check",
+      "type": "n8n-nodes-base.dataStore",
+      "notes": "Skip existing URL/hash"
+    },
+    {
+      "name": "Optional AI Summary",
+      "type": "n8n-nodes-base.openAi",
+      "notes": "Only summarize fetched source text"
+    },
+    {
+      "name": "Write Markdown",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "notes": "Save notes into vault or Git checkout"
+    },
+    {
+      "name": "Error Log",
+      "type": "n8n-nodes-base.function",
+      "notes": "Write Update not verified. Source unavailable."
+    }
+  ],
+  "connections": {},
+  "brace_rules": [
+    "Never fake updates.",
+    "Every current-event note requires source, published date, retrieved date, reliability, summary, key points, why it matters, related notes, tags.",
+    "CWIT pages must be official or marked unverified."
+  ]
+}
