@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+10_AUTOMATION_SYSTEM/state/*.json
+10_AUTOMATION_SYSTEM/logs/*.log
+.env
+*.key

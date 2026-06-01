@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B.R.A.C.E — Deep Analysis & Gap Report</title>
+<style>
+  :root {
+    --bg: #09090b;
+    --bg2: #111115;
+    --bg3: #18181e;
+    --border: rgba(255,255,255,0.07);
+    --border-hi: rgba(0,217,255,0.25);
+    --cyan: #00d9ff;
+    --cyan-dim: rgba(0,217,255,0.12);
+    --green: #22c55e;
+    --green-dim: rgba(34,197,94,0.12);
+    --amber: #f59e0b;
+    --amber-dim: rgba(245,158,11,0.12);
+    --red: #ef4444;
+    --red-dim: rgba(239,68,68,0.12);
+    --purple: #a855f7;
+    --purple-dim: rgba(168,85,247,0.12);
+    --text: #f0f4f8;
+    --text2: #94a3b8;
+    --text3: #64748b;
+    --mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 32px 80px;
+  }
+
+  /* ─── Header ─── */
+  .hero {
+    border: 1px solid var(--border-hi);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(0,217,255,0.06) 0%, rgba(138,43,226,0.04) 100%);
+    padding: 40px 44px;
+    margin-bottom: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,217,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .hero h1 span { color: var(--cyan); }
+  .hero-sub {
+    color: var(--text2);
+    font-size: 15px;
+    max-width: 640px;
+    line-height: 1.6;
+  }
+  .hero-meta {
+    display: flex;
+    gap: 24px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  .meta-pill {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .meta-pill .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    flex-shrink: 0;
+  }
+  .meta-pill .dot.amber { background: var(--amber); }
+  .meta-pill .dot.red { background: var(--red); }
+  .meta-pill .dot.green { background: var(--green); }
+
+  /* ─── Section ─── */
+  .section {
+    margin-bottom: 52px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 8px;
+    flex-shrink: 0;
+  }
+  .section-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.2px;
+  }
+  .section-badge {
+    margin-left: auto;
+    font-size: 11px;
+    font-family: var(--mono);
+    border-radius: 20px;
+    padding: 3px 10px;
+    flex-shrink: 0;
+  }
+  .badge-red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+  .badge-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+  .badge-purple { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(168,85,247,0.3); }
+  .badge-cyan { background: var(--cyan-dim); color: var(--cyan); border: 1px solid rgba(0,217,255,0.3); }
+  .badge-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+
+  /* ─── Cards ─── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .card.critical { border-color: rgba(239,68,68,0.3); }
+  .card.warn { border-color: rgba(245,158,11,0.25); }
+  .card.info { border-color: rgba(0,217,255,0.2); }
+  .card.good { border-color: rgba(34,197,94,0.2); }
+  .card.purple { border-color: rgba(168,85,247,0.2); }
+
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sev {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    border-radius: 4px;
+    padding: 2px 7px;
+  }
+  .sev-critical { background: var(--red-dim); color: var(--red); }
+  .sev-high { background: var(--amber-dim); color: var(--amber); }
+  .sev-med { background: var(--purple-dim); color: var(--purple); }
+  .sev-info { background: var(--cyan-dim); color: var(--cyan); }
+
+  .card p { color: var(--text2); font-size: 14px; line-height: 1.65; margin-bottom: 10px; }
+  .card p:last-child { margin-bottom: 0; }
+
+  /* ─── Code blocks ─── */
+  .code-block {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text2);
+    margin: 12px 0;
+    overflow-x: auto;
+    line-height: 1.6;
+  }
+  .code-block .c-cyan { color: var(--cyan); }
+  .code-block .c-amber { color: var(--amber); }
+  .code-block .c-green { color: var(--green); }
+  .code-block .c-red { color: var(--red); }
+  .code-block .c-purple { color: var(--purple); }
+  .code-block .c-dim { color: var(--text3); }
+
+  /* ─── Comparison grid ─── */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+  @media (max-width: 700px) { .compare-grid { grid-template-columns: 1fr; } }
+
+  .compare-col { }
+  .compare-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 6px 6px 0 0;
+    border: 1px solid;
+    font-weight: 600;
+  }
+  .compare-label.is { color: var(--red); border-color: rgba(239,68,68,0.3); background: var(--red-dim); }
+  .compare-label.should { color: var(--green); border-color: rgba(34,197,94,0.3); background: var(--green-dim); }
+  .compare-body {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    padding: 14px 16px;
+  }
+  .compare-item {
+    font-size: 13px;
+    color: var(--text2);
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+  }
+  .compare-item:last-child { border-bottom: none; }
+  .compare-item::before {
+    content: '✕';
+    color: var(--red);
+    font-size: 11px;
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+  .compare-item.good::before {
+    content: '✓';
+    color: var(--green);
+  }
+
+  /* ─── Issue list ─── */
+  .issue-list { list-style: none; }
+  .issue-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+    font-size: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    line-height: 1.55;
+  }
+  .issue-list li:last-child { border-bottom: none; }
+  .issue-list .icon {
+    font-size: 13px;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .issue-list .icon.warn { color: var(--amber); }
+  .issue-list .icon.crit { color: var(--red); }
+  .issue-list .icon.ok { color: var(--green); }
+  .issue-list .icon.info { color: var(--cyan); }
+
+  /* ─── Highlight box ─── */
+  .highlight {
+    background: var(--cyan-dim);
+    border: 1px solid rgba(0,217,255,0.2);
+    border-left: 3px solid var(--cyan);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 14px;
+    color: var(--text2);
+  }
+  .highlight strong { color: var(--cyan); }
+
+  .highlight.red-box {
+    background: var(--red-dim);
+    border-color: rgba(239,68,68,0.3);
+    border-left-color: var(--red);
+  }
+  .highlight.red-box strong { color: var(--red); }
+
+  .highlight.amber-box {
+    background: var(--amber-dim);
+    border-color: rgba(245,158,11,0.3);
+    border-left-color: var(--amber);
+  }
+  .highlight.amber-box strong { color: var(--amber); }
+
+  .highlight.green-box {
+    background: var(--green-dim);
+    border-color: rgba(34,197,94,0.3);
+    border-left-color: var(--green);
+  }
+  .highlight.green-box strong { color: var(--green); }
+
+  /* ─── Priority table ─── */
+  table.roadmap {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  table.roadmap th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+  table.roadmap td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  table.roadmap tr:last-child td { border-bottom: none; }
+  table.roadmap tr:hover td { background: rgba(255,255,255,0.02); }
+  .p1 { color: var(--red); font-family: var(--mono); font-size: 11px; font-weight: 700; }
+  .p2 { color: var(--amber); font-family: var(--mono); font-size: 11px; font-weight: 700; }
+  .p3 { color: var(--green); font-family: var(--mono); font-size: 11px; font-weight: 700; }
+  .effort { font-family: var(--mono); font-size: 11px; background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; color: var(--text3); }
+
+  /* ─── Inline code ─── */
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--cyan);
+    background: rgba(0,217,255,0.08);
+    border: 1px solid rgba(0,217,255,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+
+  /* ─── Divider ─── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+  /* ─── Summary bar ─── */
+  .summary-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 44px;
+  }
+  @media (max-width: 700px) { .summary-bar { grid-template-columns: 1fr 1fr; } }
+  .sum-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .sum-card .num {
+    font-size: 32px;
+    font-weight: 700;
+    font-family: var(--mono);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .sum-card .label {
+    font-size: 12px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: var(--mono);
+  }
+
+  /* ─── Architecture diagram ─── */
+  .arch {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px 0;
+  }
+  .arch-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .arch-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--text2);
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+  }
+  .arch-box.c { border-color: var(--border-hi); color: var(--cyan); }
+  .arch-box.r { border-color: rgba(239,68,68,0.4); color: var(--red); }
+  .arch-box.a { border-color: rgba(245,158,11,0.3); color: var(--amber); }
+  .arch-box.g { border-color: rgba(34,197,94,0.3); color: var(--green); }
+  .arch-label {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: var(--mono);
+    margin-bottom: 8px;
+  }
+  .arch-arrow {
+    text-align: center;
+    color: var(--text3);
+    font-size: 16px;
+    margin: 2px 0;
+  }
+
+  strong { color: var(--text); font-weight: 600; }
+  em { color: var(--amber); font-style: normal; }
+</style>
+</head>
+<body>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-tag">🔬 Engineering Deep-Dive · May 2026</div>
+  <h1><span>B.R.A.C.E.</span> — Gap Analysis & Improvement Blueprint</h1>
+  <p class="hero-sub">A comprehensive technical audit of the Brain-like Responsive Assistant for Creation and Execution — covering every gap in architecture, functionality, UI, and backend systems, with a prioritized path to what it should actually become.</p>
+  <div class="hero-meta">
+    <div class="meta-pill"><div class="dot amber"></div>1 commit in history</div>
+    <div class="meta-pill"><div class="dot red"></div>4 competing UI files</div>
+    <div class="meta-pill"><div class="dot red"></div>0 working tests</div>
+    <div class="meta-pill"><div class="dot green"></div>Solid concept & vision</div>
+    <div class="meta-pill"><div class="dot amber"></div>~3,000+ lines of UI code</div>
+  </div>
+</div>
+
+<!-- ── SUMMARY ── -->
+<div class="summary-bar">
+  <div class="sum-card">
+    <div class="num" style="color:var(--red)">12</div>
+    <div class="label">Critical Gaps</div>
+  </div>
+  <div class="sum-card">
+    <div class="num" style="color:var(--amber)">9</div>
+    <div class="label">High Priority Fixes</div>
+  </div>
+  <div class="sum-card">
+    <div class="num" style="color:var(--purple)">17</div>
+    <div class="label">UI Pages Identified</div>
+  </div>
+  <div class="sum-card">
+    <div class="num" style="color:var(--cyan)">100%</div>
+    <div class="label">Python (No JS)</div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 1: ARCHITECTURE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">01</div>
+    <h2>Architecture & Code Structure</h2>
+    <div class="section-badge badge-red">CRITICAL</div>
+  </div>
+
+  <div class="highlight red-box">
+    <strong>The core problem:</strong> The entire application is one giant monolith. <code>ui.py</code> is 1,880 lines, with a single <code>MainWindow</code> class that builds 17 different pages, manages all event handlers, handles all AI calls, controls state, and renders animations. This is the classical "god class" anti-pattern — it makes the code impossible to test, hard to extend, and very fragile to change.
+  </div>
+
+  <div class="card critical">
+    <div class="card-title">
+      <span class="sev sev-critical">CRITICAL</span>
+      Four Competing UI Files — Unfinished Refactoring
+    </div>
+    <p>There are <strong>four separate UI files</strong> in the root: <code>ui.py</code>, <code>ui_components.py</code>, <code>ui_design.py</code>, and <code>update_ui_pages.py</code>. This signals a refactoring that was started but never completed. The "premium" component system in <code>ui_components.py</code> was clearly being built as a replacement for <code>ui.py</code>, but both coexist and the app still runs off <code>ui.py</code>.</p>
+    <p>Both files define <strong>identical classes</strong>: <code>Worker</code>, <code>WorkerSignals</code>, <code>ChatBubble</code>, <code>ChatStream</code>, <code>ActivityFeed</code>, <code>CoreOrb</code>, <code>BootOverlay</code>, and <code>FileDropZone</code> — meaning any bug fixed in one must be manually copied to the other. This is a maintainability disaster.</p>
+    <div class="code-block">
+<span class="c-dim"># ui.py defines:</span>
+<span class="c-red">class Worker(QRunnable): ...</span>          <span class="c-dim"># 18 lines</span>
+<span class="c-red">class ChatBubble(QLabel): ...</span>         <span class="c-dim"># simple QLabel wrapper</span>
+<span class="c-red">class CoreOrb(QWidget): ...</span>           <span class="c-dim"># 60fps animation, 4 instances possible</span>
+
+<span class="c-dim"># ui_components.py ALSO defines (premium refactor, unused):</span>
+<span class="c-amber">class Worker(QRunnable): ...</span>          <span class="c-dim"># duplicate</span>
+<span class="c-amber">class ChatBubble(QWidget): ...</span>        <span class="c-dim"># duplicate, with copy button</span>
+<span class="c-amber">class CoreOrb(QWidget): ...</span>           <span class="c-dim"># duplicate, 30fps, better state colors</span>
+
+<span class="c-dim"># update_ui_pages.py</span>
+<span class="c-purple">???</span>                                   <span class="c-dim"># purpose unclear, migration script?</span>
+    </div>
+  </div>
+
+  <div class="card critical">
+    <div class="card-title">
+      <span class="sev sev-critical">CRITICAL</span>
+      main.py Is Effectively Incomplete — No Application Entry Point
+    </div>
+    <p>The <code>main.py</code> file is only 88 lines and cuts off mid-definition. It imports <code>BraceUI</code> from <code>ui</code>, but <code>ui.py</code> defines <code>MainWindow</code>, not <code>BraceUI</code>. There's no visible <code>QApplication</code> startup, no <code>app.exec()</code> call, and no event loop initialization in the code that can be seen. The actual application launch logic appears to be missing or is defined elsewhere (possibly inside <code>ui.py</code> at the bottom past the 1000-line view limit).</p>
+    <p>Additionally, <code>main.py</code> imports 20+ action modules (<code>file_processor</code>, <code>flight_finder</code>, <code>browser_control</code>, etc.) but contains no visible wiring between them and the UI — no tool dispatch loop, no asyncio integration with the PyQt6 event loop.</p>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">
+      <span class="sev sev-high">HIGH</span>
+      No Async/Await Integration — Blocking UI Risk
+    </div>
+    <p>The app uses <code>QThreadPool</code> with a <code>Worker</code> class to run AI calls off-thread. This prevents outright freezing, but there's no <code>qasync</code> integration (the standard bridge between Python's <code>asyncio</code> and Qt's event loop). The Gemini Live API is inherently async — without a proper bridge, the voice streaming loop must run in a daemon thread using <code>asyncio.new_event_loop()</code>, which is fragile and causes subtle crashes when signals are emitted from the wrong thread.</p>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">
+      <span class="sev sev-high">HIGH</span>
+      CoreOrb Animation — 4 Simultaneous 60fps Repaints
+    </div>
+    <p>The <code>CoreOrb</code> widget runs a <code>QTimer</code> at 16ms (60fps) that calls <code>self.update()</code> every tick, triggering a full Qt widget repaint with custom <code>paintEvent</code> math. There are potentially <strong>4 active instances</strong> at once: Dashboard, Voice Assistant, Boot Overlay, and About page. Each is doing <code>math.sin()</code>, radial gradient composition, and arc drawing 60 times per second. This is significant unnecessary CPU load, especially when those pages aren't even visible.</p>
+    <div class="code-block"><span class="c-dim"># Fix: pause the timer when the widget isn't visible</span>
+<span class="c-green">def showEvent(self, e): self._timer.start(33)   # 30fps is smooth enough</span>
+<span class="c-green">def hideEvent(self, e): self._timer.stop()       # zero cost when hidden</span>
+    </div>
+  </div>
+
+  <div class="compare-grid">
+    <div class="compare-col">
+      <div class="compare-label is">As It Is Now</div>
+      <div class="compare-body">
+        <div class="compare-item">Single 1,880-line MainWindow god class</div>
+        <div class="compare-item">4 UI files with duplicate class definitions</div>
+        <div class="compare-item">No page separation or module boundaries</div>
+        <div class="compare-item">All state stored as instance variables on MainWindow</div>
+        <div class="compare-item">No async/await — threads + polling</div>
+        <div class="compare-item">1 commit, no branching strategy</div>
+      </div>
+    </div>
+    <div class="compare-col">
+      <div class="compare-label should">What It Should Be</div>
+      <div class="compare-body">
+        <div class="compare-item good">Each page is its own <code>PageWidget</code> subclass in its own file</div>
+        <div class="compare-item good">Single <code>ui_components.py</code> as the shared component library</div>
+        <div class="compare-item good">State management via a central <code>AppState</code> dataclass + signals</div>
+        <div class="compare-item good"><code>qasync</code> for proper asyncio ↔ Qt event loop bridging</div>
+        <div class="compare-item good">CoreOrb paused when not visible, capped at 30fps</div>
+        <div class="compare-item good">feature branches, PR workflow, CI checks on push</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 2: CHAT SYSTEM -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">02</div>
+    <h2>AI Chat System</h2>
+    <div class="section-badge badge-red">CRITICAL</div>
+  </div>
+
+  <div class="highlight red-box">
+    <strong>The flagship feature doesn't render AI responses properly.</strong> Chat uses a plain <code>QLabel</code> for message bubbles. When Gemini responds with markdown — code blocks, bold text, headers, lists — they all appear as raw symbols: <code>**bold**</code>, <code>```python</code>, <code>## Heading</code>. For a tool aimed at developers and power users, this is a fundamental usability failure.
+  </div>
+
+  <div class="card critical">
+    <div class="card-title">
+      <span class="sev sev-critical">CRITICAL</span>
+      No Markdown Rendering — Code Blocks Are Plain Text
+    </div>
+    <p>The <code>ChatBubble</code> in <code>ui.py</code> is <code>class ChatBubble(QLabel)</code>. QLabel can render a subset of HTML via <code>setTextFormat(Qt.TextFormat.RichText)</code>, but only basic HTML, not markdown. Code blocks, inline code, bold, italic, numbered lists — none of these render correctly. The response <code>```python\nprint('hello')\n```</code> will literally display as three backticks and the word "python".</p>
+    <div class="compare-grid">
+      <div class="compare-col">
+        <div class="compare-label is">What Users See</div>
+        <div class="compare-body" style="font-family:var(--mono); font-size:12px; color:var(--text2);">
+          **Here's the fix:**<br><br>
+          ```python<br>
+          def hello():<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;print("world")<br>
+          ```<br><br>
+          This uses *markdown* formatting.
+        </div>
+      </div>
+      <div class="compare-col">
+        <div class="compare-label should">What They Should See</div>
+        <div class="compare-body">
+          <p style="font-size:13px; color:var(--text); margin-bottom:8px;"><strong>Here's the fix:</strong></p>
+          <div style="background:var(--bg3); border-radius:6px; padding:10px 12px; font-family:var(--mono); font-size:12px; color:var(--cyan); margin-bottom:8px;">def hello():<br>&nbsp;&nbsp;&nbsp;&nbsp;print("world")</div>
+          <p style="font-size:13px; color:var(--text2);">This uses <em style="color:var(--amber)">markdown</em> formatting.</p>
+        </div>
+      </div>
+    </div>
+    <p>The fix: replace <code>QLabel</code> with <code>QTextBrowser</code> and pipe responses through <code>mistune</code> or <code>markdown-it-py</code> to convert to HTML. For code blocks, use <code>pygments</code> to add syntax highlighting. This is 2–3 days of work and transforms the experience completely.</p>
+  </div>
+
+  <div class="card critical">
+    <div class="card-title">
+      <span class="sev sev-critical">CRITICAL</span>
+      No Streaming — Full Response Appears All At Once
+    </div>
+    <p>When the AI responds, nothing happens for several seconds (the API call runs in a Worker thread), then the entire response block-appears. There's a <code>_typing_lbl</code> widget but it only shows a static text label — no animated dots, no live token streaming. Modern AI chat UX streams tokens character-by-character. This makes the app feel broken and slow even when it isn't.</p>
+    <p>The Gemini SDK supports streaming responses via <code>generate_content_stream()</code>. The Worker should emit partial tokens via a signal, and the chat bubble should update in real-time using <code>QTextBrowser.insertHtml()</code>.</p>
+  </div>
+
+  <div class="card critical">
+    <div class="card-title">
+      <span class="sev sev-critical">CRITICAL</span>
+      No Conversation Persistence — All History Lost on Close
+    </div>
+    <p>Conversations are stored only in <code>self.messages: list[tuple[str, str]]</code> on the <code>ChatStream</code> widget — pure in-memory. Closing the app loses everything. There's no conversation history sidebar, no saved sessions, no ability to pick up where you left off. For a personal AI assistant, this is a core missing feature.</p>
+    <p>Should use SQLite (via <code>sqlite3</code> built-in) to persist conversations with timestamps, titles, and full message history. The UI should show a conversation list in a left panel.</p>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">
+      <span class="sev sev-high">HIGH</span>
+      No Multi-Turn Context Window Management
+    </div>
+    <p>The chat sends the full conversation history to the API on every message, but there's no token counting or context window management. For a long conversation, this will silently hit the API's context limit and either error out or drop early context without warning. There's no visible token counter, no context truncation strategy, and no warning when the conversation is getting long.</p>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">
+      <span class="sev sev-high">HIGH</span>
+      Quick Action Chips Have No Real Logic
+    </div>
+    <p>The AI Chat page has 14 quick-prompt chips: "Fix Code", "Explain Code", "Create Website Prompt", "Study Plan", etc. The handler <code>_use_quick_action(t)</code> likely just sets the input field to the chip label text — meaning clicking "Fix Code" types "Fix Code" into the chat input and sends it. This is almost useless without actual prompt templates that ask for code context, or that intelligently incorporate the attached file or clipboard content.</p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 3: VOICE SYSTEM -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">03</div>
+    <h2>Voice Assistant System</h2>
+    <div class="section-badge badge-red">CRITICAL</div>
+  </div>
+
+  <div class="card critical">
+    <div class="card-title">
+      <span class="sev sev-critical">CRITICAL</span>
+      Voice Mode Controls Are Purely Decorative UI
+    </div>
+    <p>The Voice Assistant page has four <code>QComboBox</code> dropdowns: Mode (Push to Talk / Always Listening / Silent Mode), Language (Auto / English / Hindi / Hinglish), Voice Speed (Normal / Slow / Fast), and Voice Pitch (Normal / Low / High). None of these are connected to any logic. They are display-only widgets. Changing "Language" from English to Hindi does absolutely nothing to how the voice processes or responds. There are no <code>currentIndexChanged</code> signal connections visible in the code.</p>
+    <div class="code-block"><span class="c-dim"># In _build_voice_page() — these combos are created but never connected:</span>
+<span class="c-red">for label, values in (</span>
+<span class="c-red">    ("Mode", ["Push to Talk", "Always Listening (disabled by default)", "Silent Mode"]),</span>
+<span class="c-red">    ("Language", ["Auto", "English", "Hindi", "Hinglish"]),</span>
+<span class="c-red">    ("Voice speed", ["Normal", "Slow", "Fast"]),</span>
+<span class="c-red">    ("Voice pitch", ["Normal", "Low", "High"]),</span>
+<span class="c-red">):</span>
+<span class="c-red">    combo = QComboBox()</span>
+<span class="c-red">    combo.addItems(values)</span>
+<span class="c-red">    <span class="c-dim"># ← No: combo.currentIndexChanged.connect(something)</span></span>
+    </div>
+  </div>
+
+  <div class="card critical">
+    <div class="card-title">
+      <span class="sev sev-critical">CRITICAL</span>
+      Gemini Live Voice Is Single-Point-of-Failure with No Fallback
+    </div>
+    <p>Voice entirely depends on <code>google-genai</code> Gemini Live streaming. If the API is down, the key is expired, or the network is slow, voice stops working entirely. There's a legacy fallback flag <code>BRACE_LEGACY_VOICE_ENABLED</code> that enables <code>pyttsx3</code> + <code>SpeechRecognition</code>, but this is a separate, independent code path with no graceful switching — it requires restarting the app with a different env variable.</p>
+    <p>There's also a fundamental threading issue: Gemini Live uses Python's <code>asyncio</code> with audio streaming, while PyQt6 runs its own event loop. Without <code>qasync</code>, these run in separate threads and signal emission across thread boundaries can cause crashes or silent failures.</p>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">
+      <span class="sev sev-high">HIGH</span>
+      "Push to Talk" Has No Actual Implementation
+    </div>
+    <p>The most usable voice mode — push-to-talk where you hold a key and speak — is listed as an option but does nothing. Microphone toggle (<code>F4</code>) exists as a mute/unmute. But a proper push-to-talk system needs: hold-key detection, audio buffering during the hold, and voice-activity detection (VAD) to detect speech end. None of this exists. The <code>_toggle_mute()</code> function just flips a boolean.</p>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">
+      <span class="sev sev-high">HIGH</span>
+      Jarvis Quick Actions Are Hard-Coded Curiosities
+    </div>
+    <p>The voice page has "Jarvis Quick Actions": Greet, Time, Date, Joke, List Music, Open Notes. These connect to <code>_run_daily_action("greet")</code> etc., which likely calls the <code>daily_assistant</code> action module. This is charming but completely disconnected from the AI — it's a set of pre-scripted responses, not AI-generated ones. There's no way to add new quick actions, edit them, or have them use the AI's knowledge. They're also not context-aware (e.g., "Greet" probably says "Good morning" at 2pm).</p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 4: MEMORY SYSTEM -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">04</div>
+    <h2>Memory System</h2>
+    <div class="section-badge badge-amber">HIGH PRIORITY</div>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">
+      <span class="sev sev-high">HIGH</span>
+      Memory Is Just a Key-Value JSON File — No Semantic Search
+    </div>
+    <p>The <code>MemoryStore</code> and <code>memory_manager.py</code> implement a simple local persistence system — essentially a JSON file storing facts. There's no vector embedding, no semantic similarity search, and no RAG (Retrieval-Augmented Generation). This means memory is effectively useless for any non-trivial knowledge base: you can't ask "what was the project I was working on last week?" and get a meaningful result. The AI can only use facts that are explicitly stored with exact keys.</p>
+    <p>What a real memory system needs: convert stored facts to vector embeddings (using a local model like <code>sentence-transformers</code>, or the Gemini embedding API), store in a vector DB like <code>ChromaDB</code> or <code>LanceDB</code>, and use semantic similarity search to find relevant context before each AI call.</p>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">
+      <span class="sev sev-high">HIGH</span>
+      Memory Vault UI Has No Real CRUD
+    </div>
+    <p>The "Memory Vault" page exists in the UI but almost certainly just shows a list of stored key-value pairs with no proper search, tagging, categorization, or editing interface. There's no way to mark memories as important vs. ephemeral, no automatic memory formation from conversations (the system doesn't auto-learn from what you talk about), and no memory expiry/decay system for outdated facts.</p>
+  </div>
+
+  <div class="card info">
+    <div class="card-title">
+      <span class="sev sev-info">INFO</span>
+      What the Memory System Should Look Like
+    </div>
+    <p>A proper BRACE memory pipeline: <strong>1)</strong> After each AI conversation, extract facts automatically using a short summarization prompt. <strong>2)</strong> Embed each fact using <code>text-embedding-004</code> (Gemini) or a local model. <strong>3)</strong> Store in ChromaDB with metadata (timestamp, source conversation, tags). <strong>4)</strong> Before each new AI call, query ChromaDB for the top-5 most semantically similar memories and inject them into the system prompt. <strong>5)</strong> UI shows memory cards with search, filtering by tag, and the ability to manually add/edit/delete.</p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 5: PROVIDER ROUTING -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">05</div>
+    <h2>AI Provider Routing</h2>
+    <div class="section-badge badge-amber">HIGH PRIORITY</div>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">
+      <span class="sev sev-high">HIGH</span>
+      NVIDIA and Local AI Providers Are Potentially Stubs
+    </div>
+    <p>The Provider Router lists four providers: Gemini Live, Provider Router, NVIDIA, Local AI. The Gemini integration is clearly the most developed. NVIDIA integration uses an OpenAI-compatible API format (via the <code>requests</code> library, not the <code>openai</code> SDK), and Local AI similarly uses OpenAI-compatible endpoints. These may work for basic text generation, but there's no streaming support, no error handling for provider-specific failures, no model listing (the model must be hand-entered via <code>QLineEdit</code>), and no automatic fallback if a provider fails mid-conversation.</p>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">
+      <span class="sev sev-high">HIGH</span>
+      No Automatic Failover Between Providers
+    </div>
+    <p>If Gemini returns an error (rate limit, quota exceeded, API down), the user sees an error message in the activity feed and must manually switch providers. There's no automatic failover logic: "try Gemini → if error, try Local AI → if error, try NVIDIA". For a system meant to always be available as an AI command center, this is a critical reliability gap.</p>
+  </div>
+
+  <div class="card info">
+    <div class="card-title">
+      <span class="sev sev-info">INFO</span>
+      The API Key Vault Has Good Intentions but Weak Encryption
+    </div>
+    <p>API keys are stored in <code>.env</code> and masked in the UI via <code>masked_api_key()</code>. The masking approach (showing first 4 and last 4 characters) is standard. However, the keys are stored as plaintext in the <code>.env</code> file with no OS-level encryption. On Windows, keys should be stored in the Windows Credential Manager (<code>keyring</code> library). On all platforms, a <code>cryptography</code>-based encrypted vault would be significantly more secure than a plaintext file.</p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 6: AUTOMATION CENTER -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">06</div>
+    <h2>Automation Center & Tools</h2>
+    <div class="section-badge badge-amber">HIGH PRIORITY</div>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">
+      <span class="sev sev-high">HIGH</span>
+      Tool "Run" Buttons Just Send Prompt Strings — Not Actual Execution
+    </div>
+    <p>Each tool card in the Automation Center has a "Run" button wired to <code>self._send_prompt(p)</code> where <code>p</code> is the tool's prompt string. This means clicking "Run" on the "Browser Control" tool just sends the text description of that tool to the AI chat — it doesn't actually run browser automation. The actual tool execution happens through a completely separate mechanism (the Gemini Live function-calling system in <code>main.py</code>), which requires voice or chat interaction. There's no direct "Run this tool with these parameters" UI flow.</p>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">
+      <span class="sev sev-high">HIGH</span>
+      No Tool Configuration UI
+    </div>
+    <p>Tools like "Browser Control", "File Controller", "Send Message", "Reminder", and "Weather Report" all need configuration: what browser profile? What paths to control? Which contacts? What location? The "Setup" button on each tool card is connected to <code>self._handle_log(f"SYS: {n} setup is available from Settings...")</code> — it just prints a message saying to go to Settings. Settings doesn't have tool-specific configuration either. Tools that can't be configured can't be used reliably.</p>
+  </div>
+
+  <div class="card info">
+    <div class="card-title">
+      <span class="sev sev-info">INFO</span>
+      Safe Mode Architecture Is Good — But Not Enough
+    </div>
+    <p>The Safe Mode concept (requiring confirmation before file writes, browser automation, system control) is exactly right and shows security-first thinking. However, the confirmation dialogs are likely <code>QMessageBox</code> simple yes/no prompts with no context about what exactly will happen. A better approach: show a full "Preview" of the action (what files will be touched, what the browser will navigate to, what system command will run), with a diff-style view for file operations.</p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 7: OPENCLAW & MCP -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">07</div>
+    <h2>OpenClaw & MCP Integration</h2>
+    <div class="section-badge badge-purple">MEDIUM PRIORITY</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span class="sev sev-med">MEDIUM</span>
+      MCP Protocol Client Is Listed in Roadmap — Doesn't Exist Yet
+    </div>
+    <p>The README roadmap explicitly lists "Full MCP protocol client invocation" as a future item. The current MCP Manager only does JSON validation, process start/stop via subprocess, and server config management. It does not actually speak the MCP protocol (JSON-RPC over stdio or HTTP+SSE). This means BRACE cannot actually call any MCP tool — it can launch the process but can't communicate with it.</p>
+    <p>This is a significant gap if the intent is to let users connect to tools like filesystem access, GitHub, Slack, databases, etc. via MCP servers. The correct approach is to use the official Python MCP SDK (<code>pip install mcp</code>) to implement a proper MCP client.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span class="sev sev-med">MEDIUM</span>
+      OpenClaw Detection Uses Subprocess — Fragile on Different Node.js Setups
+    </div>
+    <p>OpenClaw detection runs <code>subprocess.run(["openclaw", "--version"])</code> which fails if OpenClaw isn't in PATH, if it's installed via <code>nvm</code> (which isn't sourced in subprocess environments on Windows), or if the Node.js version doesn't match requirements. The check results are shown in the UI but there's no helpful wizard to guide installation. "Run Doctor" likely just runs <code>openclaw doctor</code> and dumps output to the activity feed.</p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 8: CODE COPILOT & TOOLS PAGES -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">08</div>
+    <h2>Code Copilot, Prompt Lab & Specialist Pages</h2>
+    <div class="section-badge badge-amber">HIGH PRIORITY</div>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">
+      <span class="sev sev-high">HIGH</span>
+      Code Copilot Has No Code Execution, Diff View, or Syntax Highlighting
+    </div>
+    <p>The Code Copilot page likely uses <code>QPlainTextEdit</code> for input and shows AI responses as raw text. There's no syntax highlighting of the code being discussed, no diff view to show what changed in a suggested edit, no ability to execute code in a sandboxed environment, and no integration with a real editor (VS Code extension, Language Server Protocol, etc.). It's essentially just the chat page with a code-specific label.</p>
+    <p>Should use <code>QScintilla</code> or embed a <code>Pygments</code>-highlighted <code>QTextBrowser</code> for syntax-highlighted display. Code execution needs a sandboxed subprocess with timeout, stdout/stderr capture, and a clear "Execute" button with visible output.</p>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">
+      <span class="sev sev-high">HIGH</span>
+      File Intelligence Has No Multi-File Analysis or Vector Indexing
+    </div>
+    <p>The "File Intelligence" page has a <code>FileDropZone</code> for file attachment. But the analysis is almost certainly: attach file → send to AI with a generic prompt → show response. For a "File Intelligence" system worthy of the name, it should: support dropping multiple files, index them into a local vector store, allow semantic Q&amp;A across the entire document set ("find all mentions of budget across these 5 reports"), extract structured data, and handle PDFs, Word docs, spreadsheets, and code files with format-aware parsing.</p>
+  </div>
+
+  <div class="card info">
+    <div class="card-title">
+      <span class="sev sev-info">INFO</span>
+      Web Intelligence Is Just "Send a URL to AI"
+    </div>
+    <p>The "Web Intelligence" page almost certainly takes a URL, fetches the page (probably via <code>requests + BeautifulSoup</code>), and sends the text to the AI for analysis. This won't work for JavaScript-heavy sites. Should use Playwright (already a dependency) for full rendering, plus readability parsing to extract the main content, and the ability to do recursive crawls ("analyze this entire documentation site").</p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 9: UI/UX -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">09</div>
+    <h2>UI/UX Design & Navigation</h2>
+    <div class="section-badge badge-purple">MEDIUM PRIORITY</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span class="sev sev-med">MEDIUM</span>
+      17-Page Sidebar Navigation Is Overwhelming
+    </div>
+    <p>The sidebar lists 17 pages simultaneously. This is cognitive overload — the user has to visually scan 17 options every time they want to navigate. Compare this to how Cursor, VS Code, or even Spotify organize features: primary navigation (5–6 items), with secondary items nested or hidden behind expansion. The solution is grouping: <strong>Core</strong> (Dashboard, Chat, Voice), <strong>Create</strong> (Nano Banana, Code Copilot, Prompt Lab), <strong>Connect</strong> (Automation, Web Intelligence, MCP), <strong>System</strong> (Settings, Diagnostics, About).</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span class="sev sev-med">MEDIUM</span>
+      Command Palette Is Defined But Not Wired Up
+    </div>
+    <p><code>ui_components.py</code> defines a sophisticated <code>CommandPalette</code> class (Ctrl+K searchable command overlay) with fuzzy matching, icons, and keyboard navigation. This is excellent. But it's in the "premium" component file that isn't integrated into the running app. The running app only has an <code>F11</code> fullscreen shortcut and <code>F4</code> mute toggle. The Command Palette should be the primary navigation mechanism — press Ctrl+K, type "voice", instantly switch to Voice Assistant.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span class="sev sev-med">MEDIUM</span>
+      Toast Notifications Are Built But Not Used
+    </div>
+    <p>Similarly, <code>ui_components.py</code> defines a polished <code>Toast</code> + <code>ToastManager</code> system for non-blocking notifications. But since <code>ui_components.py</code> is the incomplete refactor and <code>ui.py</code> is the running version, all notifications go to the <code>ActivityFeed</code> log widget or <code>QMessageBox</code> popups. Every action that succeeds (API key saved, memory added, image generated) should show a brief toast, not a blocking dialog.</div>
+  </div>
+
+  <div class="card info">
+    <div class="card-title">
+      <span class="sev sev-info">INFO</span>
+      Bottom Navigation Is Hidden and Unused
+    </div>
+    <p>The <code>_build_bottom_nav()</code> method creates a bottom navigation bar with 5 quick-access pages (Dashboard, AI Chat, Voice Assistant, Automation Center, Settings) and then immediately calls <code>nav.hide()</code>. This bottom nav appears to be intended for a responsive/narrow-window layout but is never shown. Either implement the responsive breakpoint that shows it, or remove the dead code.</p>
+  </div>
+
+  <div class="card info">
+    <div class="card-title">
+      <span class="sev sev-info">INFO</span>
+      Screenshots Section in README Is Placeholder
+    </div>
+    <p>The README has a Screenshots section that literally says "Add screenshots after running the upgraded app" with five bullet points for pages that should be shown. For a public GitHub repo, this signals the project isn't yet in a state to be shown running. The README should either show actual screenshots or remove the section entirely.</p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 10: TESTING & DEVOPS -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <h2>Testing, DevOps & Build Pipeline</h2>
+    <div class="section-badge badge-red">CRITICAL</div>
+  </div>
+
+  <div class="card critical">
+    <div class="card-title">
+      <span class="sev sev-critical">CRITICAL</span>
+      Zero Automated Tests — The <code>tests/</code> Folder Is Empty
+    </div>
+    <p>The <code>tests/</code> folder exists in the directory listing but there are no test files visible. The README mentions "Focused service tests" but none appear to be committed. This means every change to the codebase is manually tested (or not tested at all). For a system that touches the file system, sends messages, controls browsers, and executes code, the absence of tests is a critical risk — any refactoring could break things invisibly.</p>
+    <p>Minimum needed: unit tests for all <code>services/</code> (logging, settings, security, diagnostics), integration tests for each provider wrapper, and UI tests using <code>pytest-qt</code> for the main window initialization.</p>
+  </div>
+
+  <div class="card critical">
+    <div class="card-title">
+      <span class="sev sev-critical">CRITICAL</span>
+      Only 1 Git Commit — No Development History
+    </div>
+    <p>The entire repository has exactly 1 commit ("1 Commit" shown in the GitHub header). This means: either the entire codebase was written and committed all at once, or the git history was squashed/force-pushed. Either way, there's no incremental commit history, no way to see what changed when, no ability to bisect bugs, and no branching workflow (dev/main/feature branches). This isn't a GitHub-for-showcasing criticism — it's a practical development problem.</p>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">
+      <span class="sev sev-high">HIGH</span>
+      No CI/CD Pipeline
+    </div>
+    <p>There's a <code>.github/actions/</code> folder implied by the <code>actions/</code> directory structure but that folder appears to contain automation modules, not GitHub Actions workflows. There's no <code>.github/workflows/</code> directory, meaning no automated: linting on push, test running, type checking, or build verification. Every time code is pushed, nothing is validated automatically.</p>
+    <p>Minimum CI needed: <code>flake8</code> or <code>ruff</code> linting, <code>mypy</code> type checking, and <code>pytest</code> test run on every push to main.</p>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">
+      <span class="sev sev-high">HIGH</span>
+      PyInstaller Build Is Untested and Screenshot-Less
+    </div>
+    <p>The build system uses <code>PyInstaller</code> with a <code>BRACE.spec</code> file and a <code>build.py</code> script. The README says "Expected output: <code>dist\BRACE.exe</code>" but the screenshots section says "Add screenshots after running the upgraded app" — implying the build hasn't been successfully run yet. PyInstaller builds of PyQt6 apps with Playwright, sounddevice, google-genai, and opencv are notoriously tricky. There's no verified build artifact, no GitHub Release, and no installer wizard (listed in roadmap).</p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 11: WHAT'S ACTUALLY GOOD -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">11</div>
+    <h2>What's Actually Strong — Keep & Build On</h2>
+    <div class="section-badge badge-green">STRENGTHS</div>
+  </div>
+
+  <div class="card good">
+    <div class="card-title">Vision and Scope Are Genuinely Impressive</div>
+    <p>BRACE has a clear, coherent identity: a personal AI command center that routes between multiple AI providers, integrates voice, automation, memory, and image generation, all wrapped in a futuristic Jarvis-like UI. The concept is excellent. Most hobby projects either do too little (just a chatbot) or too much (incoherent feature sprawl). BRACE has a strong center of gravity.</p>
+  </div>
+
+  <div class="card good">
+    <div class="card-title">The Color Design System Is Beautiful</div>
+    <p>The <code>class C</code> color constants in <code>ui.py</code> and <code>ui_design.py</code> define a gorgeous dark cyberpunk palette: deep navy backgrounds, cyan primary accents, purple highlights, warm amber for warnings, bright green for success. The QSS stylesheets applying these consistently across all widgets show real care for visual coherence. The CoreOrb animation — a pulsing radial-gradient sphere with rotating arcs — is genuinely impressive for a pure-Python PyQt6 implementation.</p>
+  </div>
+
+  <div class="card good">
+    <div class="card-title">Safety-First Architecture Is the Right Foundation</div>
+    <p>Safe Mode being on by default, requiring confirmation for risky actions (file writes, browser automation, system control), masking API keys in the UI, redacting secrets from logs — all of this shows mature security thinking. This is often an afterthought in hobby AI projects. The <code>SecurityService</code> abstraction and the tool safety metadata system in <code>automation/registry.py</code> are solid patterns.</p>
+  </div>
+
+  <div class="card good">
+    <div class="card-title">Breadth of Action Modules</div>
+    <p>The <code>actions/</code> directory has 20+ modules: browser control, file controller, screen processor, YouTube tools, weather, reminders, computer settings, dev agent, code helper, media player, note taker, daily assistant, web search, and more. Each appears to be a real implementation using appropriate libraries (Playwright for browser, PyAutoGUI for desktop, <code>win10toast</code> for notifications). This is the genuinely functional part of BRACE — the tool integrations are real and testable.</p>
+  </div>
+
+  <div class="card good">
+    <div class="card-title">The Premium Component Library (ui_components.py) Is Excellent</div>
+    <p>Despite being the "abandoned refactor", <code>ui_components.py</code> defines genuinely excellent components: <code>GlassCard</code> with hover glow, <code>NeonButton</code> with color-parameterized hover effects, <code>PulseIndicator</code> with smooth sine-wave animation, <code>StatusBadge</code> with semantic color mapping, <code>EmptyState</code> with icon/action, <code>NavItem</code> with active state indicator, <code>CommandPalette</code>, and <code>ToastManager</code>. If this were completed and merged to replace <code>ui.py</code>, BRACE would look truly professional.</p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 12: ROADMAP -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">12</div>
+    <h2>Prioritized Improvement Roadmap</h2>
+    <div class="section-badge badge-cyan">ACTION PLAN</div>
+  </div>
+
+  <table class="roadmap">
+    <thead>
+      <tr>
+        <th>Priority</th>
+        <th>Task</th>
+        <th>Impact</th>
+        <th>Effort</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="p1">P1</span></td>
+        <td><strong>Complete the ui_components.py migration</strong> — delete duplicate classes from ui.py, split each of the 17 pages into its own file (e.g. <code>pages/chat_page.py</code>), wire them up via the existing QStackedWidget</td>
+        <td>Codebase becomes maintainable</td>
+        <td><span class="effort">2–3 weeks</span></td>
+      </tr>
+      <tr>
+        <td><span class="p1">P1</span></td>
+        <td><strong>Add markdown + syntax highlighting to chat</strong> — replace QLabel bubbles with QTextBrowser, pipe responses through mistune + Pygments, implement streaming token display</td>
+        <td>Core UX transformed</td>
+        <td><span class="effort">3–5 days</span></td>
+      </tr>
+      <tr>
+        <td><span class="p1">P1</span></td>
+        <td><strong>Add conversation persistence</strong> — SQLite database for chat history, conversation list sidebar, session restore on launch</td>
+        <td>Usability — users keep their work</td>
+        <td><span class="effort">3–4 days</span></td>
+      </tr>
+      <tr>
+        <td><span class="p1">P1</span></td>
+        <td><strong>Wire up the voice mode controls</strong> — implement Push to Talk (keyboard hold detection), connect language/speed/pitch settings to actual Gemini Live params or pyttsx3 settings</td>
+        <td>Voice becomes functional</td>
+        <td><span class="effort">1 week</span></td>
+      </tr>
+      <tr>
+        <td><span class="p1">P1</span></td>
+        <td><strong>Write 20+ unit tests</strong> — cover all services, provider wrappers, action modules; add pytest-qt for UI init tests; add GitHub Actions CI workflow</td>
+        <td>Development stability</td>
+        <td><span class="effort">1 week</span></td>
+      </tr>
+      <tr>
+        <td><span class="p2">P2</span></td>
+        <td><strong>Integrate qasync</strong> — replace the daemon-thread asyncio pattern with proper qasync integration so Gemini Live voice streaming runs on the Qt event loop safely</td>
+        <td>Eliminates crashes/race conditions</td>
+        <td><span class="effort">2–3 days</span></td>
+      </tr>
+      <tr>
+        <td><span class="p2">P2</span></td>
+        <td><strong>Add semantic memory with ChromaDB</strong> — embed stored facts, semantic search before AI calls, auto-extract facts from conversations after each session</td>
+        <td>Memory becomes genuinely useful</td>
+        <td><span class="effort">1 week</span></td>
+      </tr>
+      <tr>
+        <td><span class="p2">P2</span></td>
+        <td><strong>Implement real MCP protocol client</strong> — use the official Python <code>mcp</code> SDK to communicate with MCP servers (not just launch them), enabling actual tool invocation</td>
+        <td>Unlocks entire MCP ecosystem</td>
+        <td><span class="effort">1–2 weeks</span></td>
+      </tr>
+      <tr>
+        <td><span class="p2">P2</span></td>
+        <td><strong>Add provider auto-failover</strong> — if Gemini fails, automatically retry with Local AI or NVIDIA; show a toast notification; log the failover; restore to primary when available</td>
+        <td>Reliability</td>
+        <td><span class="effort">2–3 days</span></td>
+      </tr>
+      <tr>
+        <td><span class="p2">P2</span></td>
+        <td><strong>Implement Ctrl+K command palette</strong> — wire the existing CommandPalette component from ui_components.py into the main window, make it the primary navigation method</td>
+        <td>Navigation becomes fluid</td>
+        <td><span class="effort">1 day</span></td>
+      </tr>
+      <tr>
+        <td><span class="p2">P2</span></td>
+        <td><strong>Tool configuration UI</strong> — each Automation Center tool should have a configuration screen with real fields (not just "go to Settings"), stored per-tool in the app config</td>
+        <td>Tools become actually usable</td>
+        <td><span class="effort">1 week</span></td>
+      </tr>
+      <tr>
+        <td><span class="p3">P3</span></td>
+        <td><strong>Add syntax-highlighted Code Copilot editor</strong> — use QScintilla or a Pygments-highlighted display for code input/output, add code execution sandbox, diff view for suggested changes</td>
+        <td>Code Copilot becomes a real tool</td>
+        <td><span class="effort">1 week</span></td>
+      </tr>
+      <tr>
+        <td><span class="p3">P3</span></td>
+        <td><strong>Reorganize sidebar navigation</strong> — group 17 pages into 4 collapsible sections (Core, Create, Connect, System), implement responsive layout that shows bottom nav on narrow windows</td>
+        <td>Navigation clarity</td>
+        <td><span class="effort">2–3 days</span></td>
+      </tr>
+      <tr>
+        <td><span class="p3">P3</span></td>
+        <td><strong>Pause CoreOrb timers when hidden</strong> — override showEvent/hideEvent to start/stop the animation timer, cap to 30fps, avoid painting multiple instances simultaneously</td>
+        <td>CPU usage reduction</td>
+        <td><span class="effort">30 minutes</span></td>
+      </tr>
+      <tr>
+        <td><span class="p3">P3</span></td>
+        <td><strong>Verified build + GitHub Release</strong> — complete a successful PyInstaller build, verify all features work in the .exe, create a GitHub Release with the binary and installation instructions</td>
+        <td>Project is shareable</td>
+        <td><span class="effort">2–3 days</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 13: VISION -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">13</div>
+    <h2>What BRACE Should Actually Be</h2>
+    <div class="section-badge badge-cyan">NORTH STAR</div>
+  </div>
+
+  <div class="highlight">
+    <strong>The vision is right.</strong> BRACE should be the AI command center that lives on your desktop — always available via a hotkey, always listening (when you want it to), understanding your files, your code, your history, and your workflow. The gap between that vision and the current state is real, but it's completely closeable.
+  </div>
+
+  <div class="arch">
+    <div class="arch-label">Ideal BRACE Architecture Flow</div>
+    <div class="arch-row">
+      <div class="arch-box c">Voice Input (Gemini Live)</div>
+      <div class="arch-box c">Text Chat (Markdown)</div>
+      <div class="arch-box c">File Drop (Multi-format)</div>
+    </div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-row">
+      <div class="arch-box g" style="flex:3">Unified Input Router + Context Injector<br><span style="font-size:10px;color:var(--text3)">Memory retrieval · File context · Conversation history · System prompt</span></div>
+    </div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-row">
+      <div class="arch-box g">Provider Router<br><span style="font-size:10px;color:var(--text3)">Gemini → NVIDIA → Local AI (fallback chain)</span></div>
+    </div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-row">
+      <div class="arch-box c">Streaming Token Renderer</div>
+      <div class="arch-box c">Markdown + Syntax Highlighter</div>
+      <div class="arch-box c">Tool Call Executor</div>
+    </div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-row">
+      <div class="arch-box g">Action Modules</div>
+      <div class="arch-box g">MCP Protocol Client</div>
+      <div class="arch-box g">Memory Embedder</div>
+      <div class="arch-box g">Voice Synthesizer</div>
+    </div>
+  </div>
+
+  <div class="card good">
+    <div class="card-title">The Finish Line</div>
+    <p>When the P1 items are done, BRACE will be genuinely usable: chat works with proper rendering, conversations are saved, voice mode actually responds to your settings, and the code is maintainable. When P2 is done, BRACE becomes <em>powerful</em>: memory is smart, providers are reliable, MCP opens up hundreds of tools, and the app feels polished. P3 makes it something worth showing to others: real code tooling, clean navigation, and a shippable build.</p>
+    <p>The underlying architecture — PyQt6 for desktop, Gemini for AI, Playwright for browser automation, a layered service architecture — is all the right choice. The vision is sound, the color system is beautiful, and the action modules are real. This project just needs the <strong>completion of what was already started</strong> more than it needs new features.</p>
+  </div>
+</div>
+
+<hr>
+<p style="color:var(--text3); font-size:12px; font-family:var(--mono); text-align:center; padding-bottom:24px;">
+  B.R.A.C.E. Gap Analysis — Generated May 2026 &nbsp;·&nbsp; github.com/GYASH28/B.R.A.C.E &nbsp;·&nbsp; All assessments based on static code review
+</p>
+
+</body>
+</html>

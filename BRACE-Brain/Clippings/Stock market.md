@@ -1,0 +1,152 @@
+---
+title: "Stock market"
+source: "https://en.wikipedia.org/wiki/Stock_market"
+author:
+  - "[[Wikipedia]]"
+published:
+created: 2026-05-26
+description:
+tags:
+  - "clippings"
+---
+A **stock market**, **equity market**, or **share market** is the aggregation of buyers and sellers of [stocks](https://en.wikipedia.org/wiki/Stock "Stock") (also called as shares), which represent [ownership](https://en.wikipedia.org/wiki/Ownership "Ownership") claims on businesses; these may include *securities* listed on a public [stock exchange](https://en.wikipedia.org/wiki/Stock_exchange "Stock exchange") as well as stock that is only traded privately, such as shares of private companies that are sold to [investors](https://en.wikipedia.org/wiki/Investor "Investor") through [equity crowdfunding](https://en.wikipedia.org/wiki/Equity_crowdfunding "Equity crowdfunding") platforms. Investments are usually made with an [investment strategy](https://en.wikipedia.org/wiki/Investment_strategy "Investment strategy") in mind.
+
+## Size of the market
+
+The total [market capitalization](https://en.wikipedia.org/wiki/Market_capitalization "Market capitalization") of all publicly traded stocks worldwide rose from [US$](https://en.wikipedia.org/wiki/United_States_dollar "United States dollar") 2.5 trillion in 1980 to US$111 trillion by the end of 2023.[^1]
+
+As of 2016, there are 60 stock exchanges in the world. Of these, there are 16 exchanges with a [market capitalization](https://en.wikipedia.org/wiki/Market_capitalization "Market capitalization") of $1 trillion or more, and they account for 87% of [global market](https://en.wikipedia.org/wiki/Global_market "Global market") capitalization. Apart from the [Australian Securities Exchange](https://en.wikipedia.org/wiki/Australian_Securities_Exchange "Australian Securities Exchange"), these 16 exchanges are all in [North America](https://en.wikipedia.org/wiki/North_America "North America"), [Europe](https://en.wikipedia.org/wiki/Europe "Europe"), or [Asia](https://en.wikipedia.org/wiki/Asia "Asia").[^2]
+
+By country, the largest stock markets as of January 2022 are in the United States of America (about 59.9%), followed by Japan (about 6.2%) and United Kingdom (about 3.9%).[^3]
+
+[^1]: ["FY 2023 Market Highlights"](https://www.world-exchanges.org/storage/app/media/FY%202023%20Market%20Highlights%20Report%20v3.pdf) (PDF). [World Federation of Exchanges](https://en.wikipedia.org/wiki/World_Federation_of_Exchanges "World Federation of Exchanges"). 2023. [Archived](https://data.worldbank.org/indicator/CM.MKT.LCAP.CD) from the original on September 17, 2024. Retrieved September 17, 2024.
+
+[^2]: ["All of the World's Stock Exchanges by Size"](http://money.visualcapitalist.com/all-of-the-worlds-stock-exchanges-by-size/). February 16, 2016. [Archived](https://web.archive.org/web/20160414012445/http://money.visualcapitalist.com/all-of-the-worlds-stock-exchanges-by-size/) from the original on April 14, 2016. Retrieved September 29, 2016.
+
+[^3]: ["countries with largest stock markets"](https://www.statista.com/statistics/710680/global-stock-markets-by-country/). *statista*. [Archived](https://web.archive.org/web/20210608061951/https://www.statista.com/statistics/710680/global-stock-markets-by-country/) from the original on June 8, 2021. Retrieved May 9, 2020.
+
+[^4]: ["IBM Investor relations - FAQ | On what stock exchanges is IBM listed?"](http://www.ibm.com/investor/faq/item/stock-exchanges.wss). [IBM](https://en.wikipedia.org/wiki/IBM "IBM"). [Archived](https://web.archive.org/web/20120417130326/http://www.ibm.com/investor/faq/item/stock-exchanges.wss) from the original on April 17, 2012. Retrieved June 19, 2014.
+
+[^5]: ["UBS, Goldman wean away trade from NYSE, Nasdaq"](https://economictimes.indiatimes.com/ubs-goldman-wean-away-trade-from-nyse-nasdaq/articleshow/726712.cms). *[The Economic Times](https://en.wikipedia.org/wiki/The_Economic_Times "The Economic Times")*. December 6, 2006. [Archived](https://web.archive.org/web/20200414061807/https://economictimes.indiatimes.com/ubs-goldman-wean-away-trade-from-nyse-nasdaq/articleshow/726712.cms) from the original on April 14, 2020. Retrieved December 8, 2019.
+
+[^6]: Mamudi, Sam (June 13, 2014). ["Dark Pools Take Larger Share of Trades Amid SEC Scrutiny"](https://www.bloomberg.com/news/articles/2014-06-12/off-exchange-stock-trading-reaches-two-year-high-in-u-s-). [Bloomberg News](https://en.wikipedia.org/wiki/Bloomberg_News "Bloomberg News"). [Archived](https://web.archive.org/web/20210414160234/https://www.bloomberg.com/news/articles/2014-06-12/off-exchange-stock-trading-reaches-two-year-high-in-u-s-) from the original on April 14, 2021. Retrieved February 1, 2019.
+
+[^7]: ["Financial regulators probe dark pools"](https://ghostarchive.org/archive/20221210/https://www.ft.com/content/50428000-220d-11e4-9d4a-00144feabdc0). *[Financial Times](https://en.wikipedia.org/wiki/Financial_Times "Financial Times")*. September 15, 2014. Archived from [the original](https://www.ft.com/content/50428000-220d-11e4-9d4a-00144feabdc0) on December 10, 2022.
+
+[^8]: ["International Merchandise Trade Statistics: Concepts and Definitions 2010"](https://unstats.un.org/unsd/trade/eg-imts/IMTS%202010%20\(English\).pdf) (PDF). *United Nations Publication*. New York. 2011.
+
+[^9]: ["World Statistics Pocketbook"](https://unstats.un.org/unsd/publications/pocketbook/). *UN Department of Economic and Social Affairs Statistics Division*. 2024.
+
+[^10]: ["International Standard Industrial Classification Of All Economic Activities"](https://unstats.un.org/unsd/classifications/Econ/Download/In%20Text/ISIC_Rev_3_English.pdf) (PDF). *United Nations Statistical Papers* (4) (3 ed.). [New York](https://en.wikipedia.org/wiki/New_York_City "New York City"): [United Nations](https://en.wikipedia.org/wiki/United_Nations "United Nations"). 1990.
+
+[^11]: Rydqvist, Kristian; Spizman, Joshua D.; Strebulaev, Ilya A. (2011). ["Government Policy and Ownership of Financial Assets"](http://www.ssrn.com/abstract=1428442). *SSRN Electronic Journal*. [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi (identifier)"):[10.2139/ssrn.1428442](https://doi.org/10.2139%2Fssrn.1428442). [ISSN](https://en.wikipedia.org/wiki/ISSN_\(identifier\) "ISSN (identifier)") [1556-5068](https://search.worldcat.org/issn/1556-5068).
+
+[^12]: ["What's the Difference Between Direct and Indirect Shares?"](https://investorjunkie.com/investing/direct-vs-indirect-shares/). InvestorJunkie. August 14, 2018. [Archived](https://web.archive.org/web/20210414160248/https://investorjunkie.com/investing/direct-vs-indirect-shares/) from the original on April 14, 2021. Retrieved December 7, 2019.
+
+[^13]: [Statistical Abstract of the United States: 1995](https://www.census.gov/library/publications/1995/compendia/statab/115ed.html) (Report). United States Census Bureau. September 1995. p. 513. [Archived](https://web.archive.org/web/20210416133352/https://www.census.gov/library/publications/1995/compendia/statab/115ed.html) from the original on April 16, 2021. Retrieved December 17, 2015.
+
+[^14]: [Statistical Abstract of the United States: 2012](https://www.census.gov/library/publications/2011/compendia/statab/131ed.html?cssp=SERP) (Report). United States Census Bureau. August 2011. p. 730. [Archived](https://web.archive.org/web/20210417122126/https://www.census.gov/library/publications/2011/compendia/statab/131ed.html?cssp=SERP) from the original on April 17, 2021. Retrieved December 17, 2015.
+
+[^15]: Rydqvist, Kristian; Spizman, Joshua; Strebulaev, Ilya A. (January 1, 2013). ["Government Policy and Ownership of Financial Assets"](https://web.archive.org/web/20160121212119/http://www.nber.org/papers/w17522.pdf) (PDF). *NBER Working Paper Series*. [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi (identifier)"):[10.2139/ssrn.1428442](https://doi.org/10.2139%2Fssrn.1428442). [S2CID](https://en.wikipedia.org/wiki/S2CID_\(identifier\) "S2CID (identifier)") [154598793](https://api.semanticscholar.org/CorpusID:154598793). [SSRN](https://en.wikipedia.org/wiki/SSRN_\(identifier\) "SSRN (identifier)") [1428442](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1428442). Archived from [the original](http://www.nber.org/papers/w17522.pdf) (PDF) on January 21, 2016.
+
+[^16]: Aratani, Lauren (December 7, 2025). ["The K-shaped Christmas: wealthy few drive holiday spending splurge while many struggle to get by"](https://www.theguardian.com/business/2025/dec/07/stock-prices-fuel-christmas-us-economy). *The Guardian*. [Archived](https://web.archive.org/web/20251208043249/https://www.theguardian.com/business/2025/dec/07/stock-prices-fuel-christmas-us-economy) from the original on December 8, 2025. Source: Federal Reserve Bank of St Louis.
+
+[^17]: ["FRED graph / Corporate Equities and Mutual Fund Shares Held by..."](https://fred.stlouisfed.org/graph/?g=Y8rM) Federal Reserve Bank of St. Louis. December 2025. [Archived](https://web.archive.org/web/20251210054153/https://fred.stlouisfed.org/graph/?g=Y8rM) from the original on December 10, 2025. (click "Download")
+
+[^18]: [Changes in U.S. Family Finances from 2007 to 2010: Evidence from the Survey of Consumer Finances](https://www.federalreserve.gov/pubs/bulletin/2012/pdf/scf12.pdf) (PDF) (Report). Federal Reserve Board of Governors. June 2012. p. 24. [Archived](https://web.archive.org/web/20151013164007/http://www.federalreserve.gov/pubs/bulletin/2012/pdf/scf12.pdf) (PDF) from the original on October 13, 2015. Retrieved October 21, 2015.
+
+[^19]: [Changes in U.S. Family Finances from 2010 to 2013: Evidence from the Survey of Consumer Finances](https://www.federalreserve.gov/pubs/bulletin/2014/pdf/scf14.pdf) (PDF) (Report). Federal Reserve Board of Governors. September 2014. p. 20. [Archived](https://web.archive.org/web/20151102234959/http://www.federalreserve.gov/pubs/bulletin/2014/pdf/scf14.pdf) (PDF) from the original on November 2, 2015. Retrieved December 17, 2015.
+
+[^20]: Vissing-Jørgensen, Annette (2003). ["Perspectives on Behavioral Finance: Does 'Irrationality' Disappear with Wealth? Evidence from Expectations and Actions"](http://web.archive.org/web/20220417132343/https://api.semanticscholar.org/CorpusID:224798356). *NBER Macroeconomics Annual*. **18**: 139–194. [CiteSeerX](https://en.wikipedia.org/wiki/CiteSeerX_\(identifier\) "CiteSeerX (identifier)") [10.1.1.195.7189](https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.195.7189). [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi (identifier)"):[10.1086/ma.18.3585252](https://doi.org/10.1086%2Fma.18.3585252). [S2CID](https://en.wikipedia.org/wiki/S2CID_\(identifier\) "S2CID (identifier)") [224798356](https://api.semanticscholar.org/CorpusID:224798356). Archived from [the original](https://api.semanticscholar.org/CorpusID:224798356) on April 17, 2022.
+
+[^21]: Hong, Harrison (February 2004). ["Social Interaction and Stock-Market Participation"](https://surface.syr.edu/cgi/viewcontent.cgi?article=1060&context=ecn). *The Journal of Finance*. **59**: 137–163. [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi (identifier)"):[10.1111/j.1540-6261.2004.00629.x](https://doi.org/10.1111%2Fj.1540-6261.2004.00629.x). [Archived](https://web.archive.org/web/20200808005416/https://surface.syr.edu/cgi/viewcontent.cgi?article=1060&context=ecn) from the original on August 8, 2020. Retrieved September 24, 2019.
+
+[^22]: ["16de eeuwse traditionele bak- en zandsteenarchitectuur Oude Beurs Antwerpen 1 (centrum) / Antwerp foto"](http://www.belgiumview.com/belgiumview/tl1/view0002205.php4). Belgiumview.com. [Archived](https://web.archive.org/web/20081006175133/http://www.belgiumview.com/belgiumview/tl1/view0002205.php4) from the original on October 6, 2008. Retrieved September 30, 2008.
+
+[^23]: \[Ralph Dahrendorft, Class and Class Conflict in Industrial Society (Stanford, CA: Stanford University Press, 1959)\]
+
+[^24]: ["World Federation of Exchanges Monthly YTD Data"](https://web.archive.org/web/20110611085933/http://www.world-exchanges.org/statistics/ytd-monthly). World-exchanges.org. Archived from [the original](http://world-exchanges.org/statistics/ytd-monthly) on June 11, 2011. Retrieved May 31, 2011.
+
+[^25]: [Rothbard, Murray](https://en.wikipedia.org/wiki/Murray_Rothbard "Murray Rothbard"): *Making Economic Sense*, 2nd edition. (Ludwig von Mises Institute, 2006, [ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN (identifier)") [9781610165907](https://en.wikipedia.org/wiki/Special:BookSources/9781610165907 "Special:BookSources/9781610165907")), p. 426
+
+[^26]: ["Equity market Size relative to bond markets and bank assets"](http://www.eurocapitalmarkets.org/?q=node%2F176). *eurocapitalmarkets.org*. September 27, 2010. [Archived](https://web.archive.org/web/20150621161232/http://www.eurocapitalmarkets.org/?q=node%2F176) from the original on June 21, 2015. Retrieved August 14, 2015.
+
+[^27]: Mahipal Singh, 2011, [ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN (identifier)") [9788182055193](https://en.wikipedia.org/wiki/Special:BookSources/9788182055193 "Special:BookSources/9788182055193"), April 2011
+
+[^28]: Pearce, Douglas K (1983). ["Stock prices and the economy"](https://web.archive.org/web/20240628114240/https://www.kansascityfed.org/documents/871/1983-Stock%20Prices%20and%20the%20Economy.pdf) (PDF). *Federal reserve bank of Kansas city economic review*. Archived from [the original](https://www.kansascityfed.org/documents/871/1983-Stock%20Prices%20and%20the%20Economy.pdf) (PDF) on June 28, 2024. Retrieved November 9, 2025.
+
+[^29]: Nier, Erlend Walter. ["Financial Stability Frameworks and the Role of Central Banks: Lessons from the Crisis"](https://www.imf.org/external/pubs/ft/wp/2009/wp0970.pdf) (PDF). [International Monetary Fund](https://en.wikipedia.org/wiki/International_Monetary_Fund "International Monetary Fund"). [Archived](https://web.archive.org/web/20160304074412/https://www.imf.org/external/pubs/ft/wp/2009/wp0970.pdf) (PDF) from the original on March 4, 2016. Retrieved November 17, 2015.
+
+[^30]: ["Clearinghouse Definition & Example | Investing Answers"](https://web.archive.org/web/20150917233924/http://www.investinganswers.com/financial-dictionary/investing/clearinghouse-2830). *www.investinganswers.com*. Archived from [the original](http://www.investinganswers.com/financial-dictionary/investing/clearinghouse-2830) on September 17, 2015. Retrieved October 20, 2015.
+
+[^31]: Levine, Ross (2002). "Bank-Based or Market-Based Financial Systems: Which Is Better?". *Journal of Financial Intermediation*. **11** (4): 398–428. [CiteSeerX](https://en.wikipedia.org/wiki/CiteSeerX_\(identifier\) "CiteSeerX (identifier)") [10.1.1.196.658](https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.196.658). [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi (identifier)"):[10.1006/jfin.2002.0341](https://doi.org/10.1006%2Fjfin.2002.0341). [S2CID](https://en.wikipedia.org/wiki/S2CID_\(identifier\) "S2CID (identifier)") [14130685](https://api.semanticscholar.org/CorpusID:14130685).
+
+[^32]: ["Regulatory Issues Raised by the Impact of Technological Changes on Market Integrity and Efficiency Consultation Report"](https://www.iosco.org/library/pubdocs/pdf/IOSCOPD354.pdf) (PDF). [Archived](https://web.archive.org/web/20210422052441/https://www.iosco.org/library/pubdocs/pdf/IOSCOPD354.pdf) (PDF) from the original on April 22, 2021. Retrieved June 16, 2021.
+
+[^33]: ["Future of computer trading"](https://www.gov.uk/government/collections/future-of-computer-trading). *www.gov.uk*. October 23, 2012. [Archived](https://web.archive.org/web/20150913010540/https://www.gov.uk/government/collections/future-of-computer-trading) from the original on September 13, 2015. Retrieved August 14, 2015.
+
+[^34]: Alexander, K.; Dhumale, R.; Eatwell, J. (2006). [*Global Governance of Financial Systems: The International Regulation of Systemic Risk*](https://archive.org/details/globalgovernance0000alex). Oxford University Press. [ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN (identifier)") [978-0-19-516698-9](https://en.wikipedia.org/wiki/Special:BookSources/978-0-19-516698-9 "Special:BookSources/978-0-19-516698-9").
+
+[^35]: copied from Wikipedia article [Intellectual capital](https://en.wikipedia.org/wiki/Intellectual_capital "Intellectual capital") [\[1\]](https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.652.9595&rep=rep1&type=pdf) [Archived](https://web.archive.org/web/20210414035254/https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.652.9595&rep=rep1&type=pdf) April 14, 2021, at the [Wayback Machine](https://en.wikipedia.org/wiki/Wayback_Machine "Wayback Machine") The Impact of Intellectual Capital on a Firm's Stock Return | Evidence from Indonesia | Ari Barkah Djamil, Dominique Razafindrambinina, Caroline Tandeans | Journal of Business Studies Quarterly 2013, Volume 5, Number 2
+
+[^36]: Cutler, D.; Poterba, J.; Summers, L. (1991). "Speculative dynamics". *Review of Economic Studies*. **58** (3): 520–546. [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi (identifier)"):[10.2307/2298010](https://doi.org/10.2307%2F2298010). [JSTOR](https://en.wikipedia.org/wiki/JSTOR_\(identifier\) "JSTOR (identifier)") [2298010](https://www.jstor.org/stable/2298010). [S2CID](https://en.wikipedia.org/wiki/S2CID_\(identifier\) "S2CID (identifier)") [219396672](https://api.semanticscholar.org/CorpusID:219396672).
+
+[^37]: Alexander, Kern; Dhumale, Rahul; Eatwell, John (2005). *Global governance of financial systems: the international regulation of systemic risk*. Finance and the economy. Oxford: Oxford university press. [ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN (identifier)") [978-0-19-516698-9](https://en.wikipedia.org/wiki/Special:BookSources/978-0-19-516698-9 "Special:BookSources/978-0-19-516698-9").
+
+[^38]: ["OpenStax CNX"](http://cnx.org/contents/9UMcK-Dv@2/Non-Gaussian-Observations). *cnx.org*. Rice University. [Archived](https://web.archive.org/web/20170222193955/http://cnx.org/contents/9UMcK-Dv@2/Non-Gaussian-Observations) from the original on February 22, 2017. Retrieved February 22, 2017.
+
+[^39]: Mandelbrot, Benoit & Hudson, Richard L. (2006). *The Misbehavior of Markets: A Fractal View of Financial Turbulence* (annot. ed.). Basic Books. [ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN (identifier)") [978-0-465-04357-6](https://en.wikipedia.org/wiki/Special:BookSources/978-0-465-04357-6 "Special:BookSources/978-0-465-04357-6").
+
+[^40]: Taleb, Nassim Nicholas (2008). [*Fooled by Randomness: The Hidden Role of Chance in Life and in the Markets*](https://archive.org/details/fooledbyrandomne00tale) (2nd ed.). Random House. [ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN (identifier)") [978-1-4000-6793-0](https://en.wikipedia.org/wiki/Special:BookSources/978-1-4000-6793-0 "Special:BookSources/978-1-4000-6793-0").
+
+[^41]: Tversky, A. & Kahneman, D. (1974). "Judgement under uncertainty: heuristics and biases". *Science*. **185** (4157): 1124–1131. [Bibcode](https://en.wikipedia.org/wiki/Bibcode_\(identifier\) "Bibcode (identifier)"):[1974Sci...185.1124T](https://ui.adsabs.harvard.edu/abs/1974Sci...185.1124T). [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi (identifier)"):[10.1126/science.185.4157.1124](https://doi.org/10.1126%2Fscience.185.4157.1124). [PMID](https://en.wikipedia.org/wiki/PMID_\(identifier\) "PMID (identifier)") [17835457](https://pubmed.ncbi.nlm.nih.gov/17835457). [S2CID](https://en.wikipedia.org/wiki/S2CID_\(identifier\) "S2CID (identifier)") [143452957](https://api.semanticscholar.org/CorpusID:143452957).
+
+[^42]: [Morris, Stephen](https://en.wikipedia.org/wiki/Stephen_Morris_\(game_theorist\) "Stephen Morris (game theorist)"); Shin, Hyun Song (1999). ["Risk management with interdependent choice"](http://www.princeton.edu/~smorris/Published/paper_21_Risk_Management.pdf) (PDF). *Oxford Review of Economic Policy*. **15** (3): 52–62. [CiteSeerX](https://en.wikipedia.org/wiki/CiteSeerX_\(identifier\) "CiteSeerX (identifier)") [10.1.1.381.3080](https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.381.3080). [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi (identifier)"):[10.1093/oxrep/15.3.52](https://doi.org/10.1093%2Foxrep%2F15.3.52). [Archived](https://web.archive.org/web/20170815170026/http://www.princeton.edu/~smorris/Published/paper_21_Risk_Management.pdf) (PDF) from the original on August 15, 2017. Retrieved November 1, 2017.
+
+[^43]: Sklansky, David (1999). *The Theory of Poker*. Two Plus Two Publishing LLC. [ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN (identifier)") [978-1-880685-00-6](https://en.wikipedia.org/wiki/Special:BookSources/978-1-880685-00-6 "Special:BookSources/978-1-880685-00-6").
+
+[^44]: copied content from [Business Cycle](https://en.wikipedia.org/wiki/Business_Cycle "Business Cycle"); see that page's history for attribution
+
+[^45]: Syverson, Chad (2019). ["Macroeconomics and Market Power: Context, Implications, and Open Questions"](https://doi.org/10.1257%2Fjep.33.3.23). *Journal of Economic Perspectives*. **33** (3): 23–43. [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi (identifier)"):[10.1257/jep.33.3.23](https://doi.org/10.1257%2Fjep.33.3.23). [S2CID](https://en.wikipedia.org/wiki/S2CID_\(identifier\) "S2CID (identifier)") [201326865](https://api.semanticscholar.org/CorpusID:201326865).
+
+[^46]: copied content from [Social Security (United States)#Public economics](https://en.wikipedia.org/wiki/Social_Security_\(United_States\)#Public_economics "Social Security (United States)"); see that page's history for attribution
+
+[^47]: ["Americans with a college degree 1940-2018, by gender"](https://www.statista.com/statistics/184272/educational-attainment-of-college-diploma-or-higher-by-gender/#:~:text=Percentage%20of%20the%20U.S.%20population,degree%2C%20by%20gender%201940%2D2019&text=In%20an%20impressive%20increase%20from,percent%20of%20women%20in%201940). [Archived](https://web.archive.org/web/20191025220850/https://www.statista.com/statistics/184272/educational-attainment-of-college-diploma-or-higher-by-gender/#:~:text=Percentage%20of%20the%20U.S.%20population,degree%2C%20by%20gender%201940%2D2019&text=In%20an%20impressive%20increase%20from,percent%20of%20women%20in%201940) from the original on October 25, 2019. Retrieved October 9, 2020.
+
+[^48]: David Fabian (February 9, 2014). ["Why The Market Doesn't Care Where You Think It Should Go"](https://seekingalpha.com/article/2006211-why-the-market-doesnt-care-where-you-think-it-should-go). *Seeking Alpha*. [Archived](https://web.archive.org/web/20151124131148/http://seekingalpha.com/article/2006211-why-the-market-doesnt-care-where-you-think-it-should-go) from the original on November 24, 2015. Retrieved August 14, 2015.
+
+[^49]: Sergey Perminov, *Trendocracy and Stock Market Manipulations* (2008, [ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN (identifier)") [978-1-4357-5244-3](https://en.wikipedia.org/wiki/Special:BookSources/978-1-4357-5244-3 "Special:BookSources/978-1-4357-5244-3")).
+
+[^50]: Shiller, Robert (2005). [*Irrational Exuberance*](https://en.wikipedia.org/wiki/Irrational_Exuberance_\(book\) "Irrational Exuberance (book)") (2nd ed.). [Princeton University Press](https://en.wikipedia.org/wiki/Princeton_University_Press "Princeton University Press"). [ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN (identifier)") [978-0-691-12335-6](https://en.wikipedia.org/wiki/Special:BookSources/978-0-691-12335-6 "Special:BookSources/978-0-691-12335-6").
+
+[^51]: Y.H. Saif-Alyousfi, Abdulazeez (February 7, 2022). ["The impact of COVID-19 and the stringency of government policy responses on stock market returns worldwide"](https://www.emerald.com/insight/content/doi/10.1108/JCEFTS-07-2021-0030/full/html). *Journal of Chinese Economic and Foreign Trade Studies*. **15** (1): 87–105. [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi (identifier)"):[10.1108/JCEFTS-07-2021-0030](https://doi.org/10.1108%2FJCEFTS-07-2021-0030). [ISSN](https://en.wikipedia.org/wiki/ISSN_\(identifier\) "ISSN (identifier)") [1754-4408](https://search.worldcat.org/issn/1754-4408). [Archived](https://web.archive.org/web/20220401151549/https://www.emerald.com/insight/content/doi/10.1108/JCEFTS-07-2021-0030/full/html) from the original on April 1, 2022. Retrieved April 1, 2022.
+
+[^52]: [Completing the Circuit: Canadian Regulation](http://fixglobal.com/home/completing-the-circuit-canadian-regulation/) [Archived](https://web.archive.org/web/20151124121514/http://fixglobal.com/home/completing-the-circuit-canadian-regulation/) November 24, 2015, at the [Wayback Machine](https://en.wikipedia.org/wiki/Wayback_Machine "Wayback Machine"), FIXGlobal, February 2012
+
+[^53]: ["Trading Information"](https://www.nyse.com/markets/nyse/trading-info). [New York Stock Exchange](https://en.wikipedia.org/wiki/New_York_Stock_Exchange "New York Stock Exchange"). [Archived](https://web.archive.org/web/20191207210758/https://www.nyse.com/markets/nyse/trading-info) from the original on December 7, 2019. Retrieved December 7, 2019.
+
+[^54]: ["Market volatility regulations"](https://personal.vanguard.com/us/content/Funds/FundsToolsCircuitBreakersJSP.jsp). [The Vanguard Group](https://en.wikipedia.org/wiki/The_Vanguard_Group "The Vanguard Group"). [Archived](https://web.archive.org/web/20191207210733/https://personal.vanguard.com/us/content/Funds/FundsToolsCircuitBreakersJSP.jsp) from the original on December 7, 2019. Retrieved December 7, 2019.
+
+[^55]: Ickes, Barry W. (2006). ["The Foreign Exchange Market"](https://ickesbarry.github.io/forex.pdf) (PDF). [Archived](https://web.archive.org/web/20241216213813/https://ickesbarry.github.io/forex.pdf) (PDF) from the original on December 16, 2024.
+
+[^56]: Murti, Wahyu (November 27, 2018). ["The Impact of the Global Stock Market and the Foreign Exchange Market on Domestic Financial Market"](https://ersj.eu/journal/877). *European Research Studies Journal*. **XX** (4B): 99–111. [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi (identifier)"):[10.35808/ersj/877](https://doi.org/10.35808%2Fersj%2F877). [ISSN](https://en.wikipedia.org/wiki/ISSN_\(identifier\) "ISSN (identifier)") [1108-2976](https://search.worldcat.org/issn/1108-2976).
+
+[^57]: Maghyereh, Akhtam (August 1, 2005). ["Electronic Trading and Market Efficiency in an Emerging Market: The Case of the Jordanian Capital Market"](https://www.tandfonline.com/doi/abs/10.1080/1540496X.2005.11052615). *Emerging Markets Finance and Trade*. **41** (4): 5–19. [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi (identifier)"):[10.1080/1540496x.2005.11052615](https://doi.org/10.1080%2F1540496x.2005.11052615). [ISSN](https://en.wikipedia.org/wiki/ISSN_\(identifier\) "ISSN (identifier)") [1540-496X](https://search.worldcat.org/issn/1540-496X).
+
+[^58]: Wu, Haibo; Wu, Chongfeng (June 1, 2024). ["Mobile device use and the ranking effect on trading behavior: Evidence from natural experiments"](https://linkinghub.elsevier.com/retrieve/pii/S0927538X24000684). *Pacific-Basin Finance Journal*. **85** 102317. [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi (identifier)"):[10.1016/j.pacfin.2024.102317](https://doi.org/10.1016%2Fj.pacfin.2024.102317). [ISSN](https://en.wikipedia.org/wiki/ISSN_\(identifier\) "ISSN (identifier)") [0927-538X](https://search.worldcat.org/issn/0927-538X).
+
+[^59]: Sullivan, Bob (August 17, 2022). ["Average Stock Market Return"](https://www.forbes.com/advisor/investing/average-stock-market-return/). *Forbes Advisor*. Retrieved December 2, 2024.
+
+[^60]: Jennewine, Trevor (January 21, 2024). ["Here's the Average Stock Market Return Over the Last 10 Years"](https://www.nasdaq.com/articles/heres-the-average-stock-market-return-over-the-last-10-years).
+
+[^61]: Mapparenta, Mapparenta; Nasir, Munawir (July 1, 2019). ["Do Inflation, Kurs, and Interest Rates Can Affect on Public Savings?"](https://www.atlantis-press.com/proceedings/iclick-18/125913349). *Proceedings of the 1st International Conference on Life, Innovation, Change and Knowledge (ICLICK 2018)*. Advances in Social Science, Education and Humanities Research. Atlantis Press. pp. 435–438. [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi (identifier)"):[10.2991/iclick-18.2019.92](https://doi.org/10.2991%2Ficlick-18.2019.92). [ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN (identifier)") [978-94-6252-762-1](https://en.wikipedia.org/wiki/Special:BookSources/978-94-6252-762-1 "Special:BookSources/978-94-6252-762-1").
+
+[^62]: Acharya, Nupur; Pandya, Dhwani (March 21, 2022). ["How India's trading queen and mystery guru engulfed NSE in scandal"](https://economictimes.indiatimes.com/markets/stocks/news/how-indias-trading-queen-and-mystery-guru-engulfed-nse-in-scandal/articleshow/90343226.cms?from=mdr). *The Economic Times*. [Archived](https://web.archive.org/web/20220321060106/https://economictimes.indiatimes.com/markets/stocks/news/how-indias-trading-queen-and-mystery-guru-engulfed-nse-in-scandal/articleshow/90343226.cms?from=mdr) from the original on March 21, 2022.
+
+[^63]: Rangan, MC Govardhana (May 3, 2019). ["The fall of NSE: Corruption or hubris?"](https://economictimes.indiatimes.com/markets/stocks/news/the-fall-of-nse-corruption-or-hubris/articleshow/69154289.cms). *The Economic Times*. [Archived](https://web.archive.org/web/20190503062301/https://economictimes.indiatimes.com/markets/stocks/news/the-fall-of-nse-corruption-or-hubris/articleshow/69154289.cms) from the original on May 3, 2019.
+
+[^64]: Sreedhar, Vidya (June 21, 2023). ["Rs 144 crore wrongful profit! Sebi finds stock manipulation in 5 smallcaps"](https://economictimes.indiatimes.com/markets/stocks/news/sebi-bars-135-entities-from-market-on-alleged-share-manipulation-in-5-smallcaps/articleshow/101167757.cms). *The Economic Times*. Retrieved August 24, 2023.
+
+[^65]: ["Sebi ban pinches penny stocks"](https://www.business-standard.com/article/markets/sebi-ban-pinches-penny-stocks-105102601049_1.html). *Business Standard*. Retrieved August 24, 2023.
+
+[^66]: ["SEBI Cracks Down on Misuse of Penny Stocks"](https://thewire.in/business/penny-stocks-bogus-claims-sebi). *The Wire*. Retrieved August 24, 2023.

@@ -1,0 +1,16 @@
+﻿node_modules/
+.venv/
+venv/
+dist/
+build/
+output/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+brace-interface/release/
+release/
+*.exe
+*.7z
+*.asar
+*.nsis

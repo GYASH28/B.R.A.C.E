@@ -1,0 +1,161 @@
+{
+  "rss_sources": [
+    {
+      "name": "OpenAI News",
+      "url": "https://openai.com/news/rss.xml",
+      "category": "ai/news",
+      "target": "02_AI_UNIVERSE/Updates",
+      "type": "ai-news",
+      "reliability": 4,
+      "tags": [
+        "ai",
+        "ai/news",
+        "source/official"
+      ]
+    },
+    {
+      "name": "Google AI Blog",
+      "url": "https://blog.google/technology/ai/rss/",
+      "category": "ai/news",
+      "target": "02_AI_UNIVERSE/Updates",
+      "type": "ai-news",
+      "reliability": 4,
+      "tags": [
+        "ai",
+        "ai/news",
+        "source/official"
+      ]
+    },
+    {
+      "name": "MIT Technology Review AI",
+      "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed",
+      "category": "technology",
+      "target": "02_AI_UNIVERSE/Updates",
+      "type": "ai-news",
+      "reliability": 4,
+      "tags": [
+        "ai",
+        "ai/news"
+      ]
+    },
+    {
+      "name": "BBC World",
+      "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+      "category": "world/news",
+      "target": "03_WORLD_INTELLIGENCE/Updates",
+      "type": "world-update",
+      "reliability": 4,
+      "tags": [
+        "world",
+        "world/news"
+      ]
+    },
+    {
+      "name": "The Hindu National",
+      "url": "https://www.thehindu.com/news/national/feeder/default.rss",
+      "category": "india",
+      "target": "03_WORLD_INTELLIGENCE/Updates",
+      "type": "world-update",
+      "reliability": 4,
+      "tags": [
+        "world",
+        "india"
+      ]
+    },
+    {
+      "name": "Indian Express India",
+      "url": "https://indianexpress.com/section/india/feed/",
+      "category": "india",
+      "target": "03_WORLD_INTELLIGENCE/Updates",
+      "type": "world-update",
+      "reliability": 4,
+      "tags": [
+        "world",
+        "india"
+      ]
+    }
+  ],
+  "page_monitors": [
+    {
+      "name": "CWIT Home",
+      "url": "https://cwit.mespune.org/",
+      "category": "cwit/notice",
+      "target": "04_CWIT_COLLEGE_PUNE/Updates",
+      "type": "cwit-update",
+      "reliability": 5,
+      "official": true,
+      "tags": [
+        "cwit",
+        "cwit/notice",
+        "source/official"
+      ]
+    },
+    {
+      "name": "CWIT Contact",
+      "url": "https://cwit.mespune.org/contact-us/",
+      "category": "cwit/contact",
+      "target": "04_CWIT_COLLEGE_PUNE/Updates",
+      "type": "cwit-update",
+      "reliability": 5,
+      "official": true,
+      "tags": [
+        "cwit",
+        "source/official"
+      ]
+    },
+    {
+      "name": "CWIT About",
+      "url": "https://cwit.mespune.org/about-us/",
+      "category": "cwit/about",
+      "target": "04_CWIT_COLLEGE_PUNE/Updates",
+      "type": "cwit-update",
+      "reliability": 5,
+      "official": true,
+      "tags": [
+        "cwit",
+        "source/official"
+      ]
+    },
+    {
+      "name": "MSBTE",
+      "url": "https://msbte.org.in/",
+      "category": "cwit/exam",
+      "target": "04_CWIT_COLLEGE_PUNE/Updates",
+      "type": "cwit-update",
+      "reliability": 5,
+      "official": true,
+      "tags": [
+        "cwit",
+        "cwit/exam",
+        "source/official"
+      ]
+    },
+    {
+      "name": "DTE Maharashtra",
+      "url": "https://dtemaharashtra.gov.in/",
+      "category": "cwit/admission",
+      "target": "04_CWIT_COLLEGE_PUNE/Updates",
+      "type": "cwit-update",
+      "reliability": 5,
+      "official": true,
+      "tags": [
+        "cwit",
+        "cwit/admission",
+        "source/official"
+      ]
+    },
+    {
+      "name": "AICTE",
+      "url": "https://www.aicte-india.org/",
+      "category": "education",
+      "target": "04_CWIT_COLLEGE_PUNE/Updates",
+      "type": "cwit-update",
+      "reliability": 5,
+      "official": true,
+      "tags": [
+        "cwit",
+        "source/official"
+      ]
+    }
+  ]
+}
