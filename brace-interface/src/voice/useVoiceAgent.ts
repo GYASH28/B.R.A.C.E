@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChatMessage, VoiceConfig, VoiceOrbState, VoiceStatus } from "../types";
 import { mergeVoiceConfig } from "./voiceStateStore";
 import { useAudioPlayer } from "./useAudioPlayer";
@@ -23,7 +23,8 @@ export function useVoiceAgent({ addMessage, sendCommand, history = [], workspace
   const [error, setError] = useState("");
 
   const { speak, speaking, stop: stopSpeaking, voices } = useAudioPlayer(config);
-  const liveMode = config.onlineVoiceEnabled || config.mode === "online-high-quality";
+  const liveMode = config.onlineVoiceEnabled && config.mode === "online-high-quality";
+  const autoStartAttemptedRef = useRef(false);
   const live = useGPTLive({ history, workspacePath });
 
   const refreshVoiceStatus = useCallback(async () => {
@@ -138,7 +139,12 @@ export function useVoiceAgent({ addMessage, sendCommand, history = [], workspace
   const browserVoiceOptions = useMemo(() => voices.map((voice) => ({ id: voice.name, label: voice.name, description: `${voice.lang}${voice.localService ? " local" : ""}` })), [voices]);
 
   useEffect(() => {
-    if (!autoStart || !liveMode || live.connected || live.connecting) return;
+    if (!autoStart) {
+      autoStartAttemptedRef.current = false;
+      return;
+    }
+    if (!liveMode || live.connected || live.connecting || autoStartAttemptedRef.current) return;
+    autoStartAttemptedRef.current = true;
     const timer = window.setTimeout(() => void startListening(), 450);
     return () => window.clearTimeout(timer);
   }, [autoStart, live.connected, live.connecting, liveMode, startListening]);
@@ -150,6 +156,7 @@ export function useVoiceAgent({ addMessage, sendCommand, history = [], workspace
     error: liveMode ? (live.error || error) : error,
     isLiveMode: liveMode,
     lastResponse: liveMode ? live.outputTranscript : lastResponse,
+    listening: liveMode ? (live.connected || live.connecting) : recorder.listening,
     liveConnected: live.connected,
     liveSessionId: live.sessionId,
     orbState: liveMode
