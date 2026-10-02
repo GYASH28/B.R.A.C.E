@@ -31,13 +31,6 @@ interface SpeechRecognition extends EventTarget {
   stop(): void;
 }
 
-interface GeminiBridgeResult {
-  ok: boolean;
-  text?: string;
-  error?: string;
-  model?: string;
-}
-
 type BridgePayload = Record<string, unknown>;
 
 interface Window {
@@ -47,19 +40,12 @@ interface Window {
     brainPathHint: string;
     state: () => Promise<unknown>;
     updateSettings: (patch: BridgePayload) => Promise<unknown>;
-    saveSecret: (payload: { key: string; value: string }) => Promise<unknown>;
     updatePermission: (payload: { name: string; enabled: boolean }) => Promise<unknown>;
     listLogs: () => Promise<unknown>;
     clearLogs: () => Promise<unknown>;
     listChat: () => Promise<unknown>;
     saveChat: (messages: unknown[]) => Promise<unknown>;
     clearChat: () => Promise<unknown>;
-    askAi: (payload: { prompt: string }) => Promise<GeminiBridgeResult & { provider?: string }>;
-    testAi: () => Promise<unknown>;
-    listAgents: () => Promise<unknown>;
-    listSkills: () => Promise<unknown>;
-    createLiveSession: (payload: BridgePayload) => Promise<unknown>;
-    runLiveDelegation: (payload: BridgePayload) => Promise<unknown>;
     systemInfo: () => Promise<unknown>;
     selectFiles: () => Promise<unknown>;
     selectFolder: () => Promise<unknown>;
@@ -79,11 +65,6 @@ interface Window {
     secondBrainStatus: () => Promise<unknown>;
     secondBrainSearch: (payload: { query: string; limit?: number }) => Promise<unknown>;
     selectSecondBrain: () => Promise<unknown>;
-    runAgent: (payload: BridgePayload) => Promise<unknown>;
-    approveAgent: (payload: BridgePayload) => Promise<unknown>;
-    rejectAgent: (payload: BridgePayload) => Promise<unknown>;
-    cancelAgent: (payload: BridgePayload) => Promise<unknown>;
-    listAgentTasks: () => Promise<unknown>;
     listTools: () => Promise<unknown>;
     dryRunTool: (payload: BridgePayload) => Promise<unknown>;
     listMemories: () => Promise<unknown>;
@@ -100,11 +81,6 @@ interface Window {
     listProjects: () => Promise<unknown>;
     addProject: (payload: BridgePayload) => Promise<unknown>;
     scanProject: (payload: BridgePayload) => Promise<unknown>;
-    voiceStatus: () => Promise<unknown>;
-    getVoiceConfig: () => Promise<unknown>;
-    updateVoiceConfig: (payload: BridgePayload) => Promise<unknown>;
-    listVoiceOptions: () => Promise<unknown>;
-    logVoiceEvent: (payload: BridgePayload) => Promise<unknown>;
     localVoiceStatus: () => Promise<unknown>;
     warmLocalVoice: () => Promise<unknown>;
     transcribeLocalVoice: (payload: { bytes: Uint8Array | number[]; mimeType?: string; language?: string }) => Promise<unknown>;
