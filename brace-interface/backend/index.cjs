@@ -27,6 +27,7 @@ const folderTools = require("./tools/folderTools.cjs");
 const appTools = require("./tools/appTools.cjs");
 const systemTools = require("./tools/systemTools.cjs");
 const { createVoiceService } = require("./voice/voiceService.cjs");
+const { createLocalVoiceService } = require("./voice/localVoiceService.cjs");
 
 function cryptoId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
@@ -65,6 +66,7 @@ function createBackend({ app, dialog, safeStorage, shell, mainWindow }) {
   const executor = createExecutor({ toolRouter, stateStore, memoryManager, logger, pathGuard });
   const sendEvent = (channel, payload) => mainWindow()?.webContents?.send(channel, payload);
   const codexService = createCodexService({ sendEvent, logger, stateStore });
+  const localVoiceService = createLocalVoiceService({ userDataPath, logger, sendEvent });
 
   function getSettings() {
     const settings = { ...stateStore.readState().settings };
@@ -188,6 +190,7 @@ function createBackend({ app, dialog, safeStorage, shell, mainWindow }) {
     approvals,
     agentRuntime,
     codexService,
+    localVoiceService,
     secondBrain,
     toolRouter,
     ensureState,
@@ -383,6 +386,10 @@ function createBackend({ app, dialog, safeStorage, shell, mainWindow }) {
           return { ok: false, error: error.message, text: `Codex error: ${error.message}` };
         }
       },
+      localVoiceStatus: () => localVoiceService.status(),
+      localVoiceWarm: () => localVoiceService.warm(),
+      localVoiceTranscribe: (payload) => localVoiceService.transcribeBytes(payload),
+      localVoiceSynthesize: (payload) => localVoiceService.synthesize(payload),
       secondBrainStatus: () => secondBrain.status(),
       secondBrainSearch: ({ query, limit }) => secondBrain.search(query, { limit }),
       secondBrainSelect: async () => {
