@@ -52,7 +52,14 @@ function createBackend({ app, dialog, safeStorage, shell, mainWindow }) {
   const pathGuard = createPathGuard({ safeRoots });
   const toolRegistry = createToolRegistry({ shell });
   const toolRouter = createToolRouter(toolRegistry);
-  const sendEvent = (channel, payload) => mainWindow()?.webContents?.send(channel, payload);
+  const sendEvent = (channel, payload) => {
+    const win = mainWindow?.();
+    if (!win || win.isDestroyed?.()) return false;
+    const contents = win.webContents;
+    if (!contents || contents.isDestroyed?.()) return false;
+    contents.send(channel, payload);
+    return true;
+  };
   const codexService = createCodexService({ sendEvent, logger, stateStore });
   const fastActionService = createFastActionService({ stateStore, shell, logger });
   const localVoiceService = createLocalVoiceService({ userDataPath, logger, sendEvent });
