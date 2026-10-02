@@ -159,6 +159,7 @@ export function useVoiceAgent({ addMessage, sendCommand, history = [], workspace
     listening: liveMode ? (live.connected || live.connecting) : recorder.listening,
     liveConnected: live.connected,
     liveSessionId: live.sessionId,
+    liveUsageSeconds: live.usageSeconds,
     orbState: liveMode
       ? live.orbState
       : recorder.listening
