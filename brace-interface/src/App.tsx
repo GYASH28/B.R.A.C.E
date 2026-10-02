@@ -1171,13 +1171,66 @@ function SystemPage({
 }
 
 function AgentTasksPage({ approvals, onApprove, onReject, tasks }: { approvals: ApprovalRequest[]; onApprove: (approvalId: string) => Promise<void>; onReject: (approvalId: string) => Promise<void>; tasks: AgentTaskRecord[] }) {
+  const [specialists, setSpecialists] = useState<Array<{ id: string; name: string; icon: string; tier: string; description: string }>>([]);
+  const [linkedSkills, setLinkedSkills] = useState<Array<{ id: string; name: string; description: string }>>([]);
+
+  useEffect(() => {
+    let active = true;
+    void Promise.all([window.braceDesktop?.listAgents?.(), window.braceDesktop?.listSkills?.()]).then(([agents, skills]) => {
+      if (!active) return;
+      if (Array.isArray(agents)) setSpecialists(agents);
+      if (Array.isArray(skills)) setLinkedSkills(skills);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <GlassCard className="p-6">
-        <p className="text-xs uppercase tracking-[0.24em] text-cyan-200">Agent runtime</p>
-        <h1 className="mt-2 text-3xl font-semibold text-white">Plans, approvals, and results</h1>
-        <p className="mt-3 text-slate-400">Every agent task keeps its plan, risk level, approval state, outputs, and recovery hint.</p>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.24em] text-cyan-200">Agent runtime</p>
+            <h1 className="mt-2 text-3xl font-semibold text-white">B.R.A.C.E cognitive swarm</h1>
+            <p className="mt-3 max-w-3xl text-slate-400">Luna-High is the default brain. Specialist agents automatically escalate difficult work to Terra or Sol while protected PC actions still pass through approvals.</p>
+          </div>
+          <div className="flex gap-2">
+            <StatusBadge label={`${specialists.length || 17} agents`} tone="cyan" />
+            <StatusBadge label={`${linkedSkills.length} linked skills`} tone="purple" />
+          </div>
+        </div>
       </GlassCard>
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {specialists.map((agent) => (
+          <GlassCard className="group p-4" interactive key={agent.id}>
+            <div className="flex items-start gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-200/15 bg-cyan-300/[0.06] font-mono text-cyan-100">{agent.icon}</span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h2 className="truncate text-sm font-semibold text-white">{agent.name}</h2>
+                  <span className="rounded-full border border-white/10 px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em] text-slate-500">{agent.tier}</span>
+                </div>
+                <p className="mt-2 text-xs leading-5 text-slate-500">{agent.description}</p>
+              </div>
+            </div>
+          </GlassCard>
+        ))}
+      </div>
+
+      {linkedSkills.length > 0 && (
+        <GlassCard className="p-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="mr-2 text-xs uppercase tracking-[0.2em] text-slate-500">Skill mesh</span>
+            {linkedSkills.slice(0, 18).map((skill) => (
+              <span className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1 text-[11px] text-slate-400" key={skill.id}>{skill.name}</span>
+            ))}
+            {linkedSkills.length > 18 && <span className="text-xs text-slate-600">+{linkedSkills.length - 18} more</span>}
+          </div>
+        </GlassCard>
+      )}
+
       <div className="space-y-4">
         {approvals.map((approval) => (
           <ApprovalCard approval={approval} key={approval.id} onApprove={onApprove} onReject={onReject} />
