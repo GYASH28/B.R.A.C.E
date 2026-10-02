@@ -50,6 +50,9 @@ function registerIpc() {
   handle("codex:interrupt", handlers.codexInterrupt);
   handle("codex:new-thread", handlers.codexNewThread);
   handle("codex:approval", handlers.codexApproval);
+  handle("brain:status", handlers.secondBrainStatus);
+  handle("brain:search", handlers.secondBrainSearch);
+  handle("brain:select", handlers.secondBrainSelect);
   handle("agent:run", handlers.agentRun);
   handle("agent:approve", handlers.agentApprove);
   handle("agent:reject", handlers.agentReject);
