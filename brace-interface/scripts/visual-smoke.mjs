@@ -1,7 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { _electron as electron } from "playwright";
+
+const require = createRequire(import.meta.url);
+const electronPath = require("electron");
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const appDir = path.resolve(here, "..");
@@ -9,6 +13,7 @@ const artifactDir = path.join(appDir, "artifacts");
 fs.mkdirSync(artifactDir, { recursive: true });
 
 const electronApp = await electron.launch({
+  executablePath: electronPath,
   args: ["."],
   cwd: appDir,
   env: {
