@@ -23,6 +23,8 @@ async function callOpenAIResponses(settings, prompt, options = {}) {
     reasoning: { effort, mode },
     max_output_tokens: options.maxOutputTokens || Math.max(800, Number(settings.maxTokens || 1800)),
   };
+  if (Array.isArray(options.tools) && options.tools.length) body.tools = options.tools;
+  if (options.toolChoice) body.tool_choice = options.toolChoice;
 
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
