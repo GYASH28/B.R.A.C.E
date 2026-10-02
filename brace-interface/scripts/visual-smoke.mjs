@@ -1,83 +1,45 @@
 import fs from "node:fs";
 import path from "node:path";
+import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
-import { _electron as electron } from "playwright";
 
 const require = createRequire(import.meta.url);
 const electronPath = require("electron");
-
 const here = path.dirname(fileURLToPath(import.meta.url));
 const appDir = path.resolve(here, "..");
 const artifactDir = path.join(appDir, "artifacts");
-fs.mkdirSync(artifactDir, { recursive: true });
+const label = String(process.env.BRACE_VISUAL_LABEL || "smoke")
+  .replace(/[^a-z0-9_-]+/gi, "-")
+  .toLowerCase();
+const screenshotPath = path.join(artifactDir, `brace-shell-${label}.png`);
 
-const electronApp = await electron.launch({
-  executablePath: electronPath,
-  args: ["."],
+fs.mkdirSync(artifactDir, { recursive: true });
+fs.rmSync(screenshotPath, { force: true });
+
+const child = spawn(electronPath, ["."], {
   cwd: appDir,
+  stdio: "inherit",
   env: {
     ...process.env,
     BRACE_VISUAL_SMOKE: "1",
+    BRACE_VISUAL_SCREENSHOT: screenshotPath,
   },
 });
 
-try {
-  const page = await electronApp.firstWindow();
-  await page.waitForSelector(".brace-shell", { timeout: 20000 });
-  await page.waitForSelector(".brace-orb", { timeout: 20000 });
-  await page.waitForSelector(".brace-composer", { timeout: 20000 });
-
-  const metrics = await page.evaluate(() => {
-    const shell = document.querySelector(".brace-shell")?.getBoundingClientRect();
-    const orb = document.querySelector(".brace-orb")?.getBoundingClientRect();
-    const composer = document.querySelector(".brace-composer")?.getBoundingClientRect();
-    const sidebar = document.querySelector("aside, nav");
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-
-    return {
-      width,
-      height,
-      shell: shell ? { x: shell.x, y: shell.y, width: shell.width, height: shell.height } : null,
-      orb: orb ? { x: orb.x, y: orb.y, width: orb.width, height: orb.height } : null,
-      composer: composer ? { x: composer.x, y: composer.y, width: composer.width, height: composer.height } : null,
-      hasPermanentSidebar: Boolean(sidebar),
-      bodyOverflow: getComputedStyle(document.body).overflow,
-    };
+const exitCode = await new Promise((resolve, reject) => {
+  child.once("error", reject);
+  child.once("exit", (code, signal) => {
+    if (signal) reject(new Error(`Electron visual smoke exited via ${signal}`));
+    else resolve(code ?? 1);
   });
+});
 
-  if (!metrics.shell || !metrics.orb || !metrics.composer) {
-    throw new Error("Fresh shell, orb, or composer did not render.");
-  }
-  if (metrics.hasPermanentSidebar) {
-    throw new Error("A permanent sidebar/nav rendered in the fresh shell.");
-  }
-
-  const orbCenter = metrics.orb.x + metrics.orb.width / 2;
-  const viewportCenter = metrics.width / 2;
-  if (Math.abs(orbCenter - viewportCenter) > Math.max(40, metrics.width * 0.04)) {
-    throw new Error(`Orb is not horizontally centered: ${JSON.stringify(metrics)}`);
-  }
-
-  if (
-    metrics.composer.x < 0 ||
-    metrics.composer.y < 0 ||
-    metrics.composer.x + metrics.composer.width > metrics.width + 1 ||
-    metrics.composer.y + metrics.composer.height > metrics.height + 1
-  ) {
-    throw new Error(`Composer is clipped: ${JSON.stringify(metrics)}`);
-  }
-
-  if (metrics.bodyOverflow !== "hidden") {
-    throw new Error(`Desktop shell should not page-scroll: ${JSON.stringify(metrics)}`);
-  }
-
-  const label = String(process.env.BRACE_VISUAL_LABEL || "smoke").replace(/[^a-z0-9_-]+/gi, "-").toLowerCase();
-  const screenshotPath = path.join(artifactDir, `brace-shell-${label}.png`);
-  await page.screenshot({ path: screenshotPath, fullPage: true });
-  process.stdout.write(`✅ Electron visual smoke passed · ${metrics.width}x${metrics.height}\n`);
-  process.stdout.write(`Screenshot: ${screenshotPath}\n`);
-} finally {
-  await electronApp.close();
+if (exitCode !== 0) {
+  throw new Error(`Electron visual smoke failed with exit code ${exitCode}`);
 }
+if (!fs.existsSync(screenshotPath) || fs.statSync(screenshotPath).size < 1000) {
+  throw new Error("Electron visual smoke did not create a valid screenshot.");
+}
+
+process.stdout.write(`✅ Electron visual smoke passed · ${screenshotPath}\n`);
