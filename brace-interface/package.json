@@ -9,9 +9,14 @@
     "dev": "vite",
     "test": "node --test backend/**/*.test.cjs",
     "build": "tsc && vite build",
-    "desktop": "npm run build && electron .",
+    "desktop": "npm run build && npm run launch",
     "dist:win": "npm run build && electron-builder --win portable --x64",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "launch": "electron .",
+    "dist:linux": "npm run build && electron-builder --linux AppImage --x64",
+    "smoke:codex": "node scripts/smoke-codex.cjs",
+    "verify:local": "bash scripts/verify-brace-local.sh",
+    "verify:visual": "node scripts/visual-smoke.mjs"
   },
   "build": {
     "appId": "local.brace.assistant",
@@ -23,7 +28,8 @@
       "dist/**/*",
       "electron/**/*",
       "backend/**/*",
-      "package.json"
+      "package.json",
+      "scripts/voice/**/*"
     ],
     "win": {
       "signAndEditExecutable": false,
@@ -40,7 +46,22 @@
     "portable": {
       "artifactName": "B.R.A.C.E-${version}-${arch}.${ext}"
     },
-    "asar": true
+    "asar": true,
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "B.R.A.C.E-${version}-${arch}.${ext}",
+      "category": "Utility"
+    },
+    "asarUnpack": [
+      "scripts/voice/**/*"
+    ]
   },
   "devDependencies": {
     "@types/react": "^19.2.15",
@@ -62,5 +83,8 @@
     "react-dom": "^19.2.6",
     "systeminformation": "^5.31.6",
     "tailwindcss": "^4.3.0"
+  },
+  "engines": {
+    "node": ">=22.6.0"
   }
 }

@@ -31,13 +31,6 @@ interface SpeechRecognition extends EventTarget {
   stop(): void;
 }
 
-interface GeminiBridgeResult {
-  ok: boolean;
-  text?: string;
-  error?: string;
-  model?: string;
-}
-
 type BridgePayload = Record<string, unknown>;
 
 interface Window {
@@ -47,15 +40,12 @@ interface Window {
     brainPathHint: string;
     state: () => Promise<unknown>;
     updateSettings: (patch: BridgePayload) => Promise<unknown>;
-    saveSecret: (payload: { key: string; value: string }) => Promise<unknown>;
     updatePermission: (payload: { name: string; enabled: boolean }) => Promise<unknown>;
     listLogs: () => Promise<unknown>;
     clearLogs: () => Promise<unknown>;
     listChat: () => Promise<unknown>;
     saveChat: (messages: unknown[]) => Promise<unknown>;
     clearChat: () => Promise<unknown>;
-    askAi: (payload: { prompt: string }) => Promise<GeminiBridgeResult & { provider?: string }>;
-    testAi: () => Promise<unknown>;
     systemInfo: () => Promise<unknown>;
     selectFiles: () => Promise<unknown>;
     selectFolder: () => Promise<unknown>;
@@ -67,11 +57,14 @@ interface Window {
     addApp: () => Promise<unknown>;
     deleteApp: (id: string) => Promise<unknown>;
     launchApp: (app: BridgePayload) => Promise<unknown>;
-    runAgent: (payload: BridgePayload) => Promise<unknown>;
-    approveAgent: (payload: BridgePayload) => Promise<unknown>;
-    rejectAgent: (payload: BridgePayload) => Promise<unknown>;
-    cancelAgent: (payload: BridgePayload) => Promise<unknown>;
-    listAgentTasks: () => Promise<unknown>;
+    codexStatus: () => Promise<unknown>;
+    codexRun: (payload: BridgePayload) => Promise<unknown>;
+    codexInterrupt: () => Promise<unknown>;
+    codexNewThread: () => Promise<unknown>;
+    codexApproval: (payload: { id: string; allow: boolean; forSession?: boolean }) => Promise<unknown>;
+    secondBrainStatus: () => Promise<unknown>;
+    secondBrainSearch: (payload: { query: string; limit?: number }) => Promise<unknown>;
+    selectSecondBrain: () => Promise<unknown>;
     listTools: () => Promise<unknown>;
     dryRunTool: (payload: BridgePayload) => Promise<unknown>;
     listMemories: () => Promise<unknown>;
@@ -88,14 +81,22 @@ interface Window {
     listProjects: () => Promise<unknown>;
     addProject: (payload: BridgePayload) => Promise<unknown>;
     scanProject: (payload: BridgePayload) => Promise<unknown>;
-    voiceStatus: () => Promise<unknown>;
-    getVoiceConfig: () => Promise<unknown>;
-    updateVoiceConfig: (payload: BridgePayload) => Promise<unknown>;
-    listVoiceOptions: () => Promise<unknown>;
-    logVoiceEvent: (payload: BridgePayload) => Promise<unknown>;
+    localVoiceStatus: () => Promise<unknown>;
+    warmLocalVoice: () => Promise<unknown>;
+    transcribeLocalVoice: (payload: { bytes: Uint8Array | number[]; mimeType?: string; language?: string }) => Promise<unknown>;
+    synthesizeLocalVoice: (payload: { text: string; voice?: string; speed?: number }) => Promise<unknown>;
+    warmWakeWord: () => Promise<unknown>;
+    predictWakeWord: (payload: { audioBase64: string; threshold?: number; cooldownSeconds?: number }) => Promise<unknown>;
+    resetWakeWord: () => Promise<unknown>;
     clearAllData: () => Promise<unknown>;
     onHotkey: (callback: (name: string) => void) => () => void;
     onAgentEvent: (callback: (payload: unknown) => void) => () => void;
+    onCodexStatus: (callback: (payload: unknown) => void) => () => void;
+    onCodexDelta: (callback: (payload: unknown) => void) => () => void;
+    onCodexEvent: (callback: (payload: unknown) => void) => () => void;
+    onCodexApproval: (callback: (payload: unknown) => void) => () => void;
+    onLocalVoiceStatus: (callback: (payload: unknown) => void) => () => void;
+    onLocalVoiceEvent: (callback: (payload: unknown) => void) => () => void;
     onApprovalRequest: (callback: (payload: unknown) => void) => () => void;
   };
 }

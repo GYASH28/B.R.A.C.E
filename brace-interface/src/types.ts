@@ -63,6 +63,8 @@ export type SettingsState = {
   ollamaModel: string;
   customEndpoint: string;
   offlineMode: boolean;
+  orchestratedAI?: boolean;
+  liveVoice?: string;
   safeMode: boolean;
   voiceRate: number;
   voicePitch: number;
@@ -84,6 +86,7 @@ export type VoiceOrbState = "idle" | "listening" | "thinking" | "speaking" | "er
 
 export type VoiceConfig = {
   mode: VoiceMode;
+  liveVoice?: string;
   sttProvider: string;
   ttsProvider: string;
   vadProvider: string;

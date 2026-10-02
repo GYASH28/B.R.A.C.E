@@ -1,0 +1,59 @@
+name: BRACE CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: brace-interface
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: brace-interface/package-lock.json
+      - run: npm ci
+      - name: Validate local voice scripts
+        run: |
+          python3 -m py_compile scripts/voice/brace_voice_worker.py
+          bash -n scripts/setup-local-voice.sh scripts/smoke-local-voice.sh scripts/setup-jarvis.sh
+      - run: npm test
+      - run: npm run build
+      - name: Visual smoke 1920x1080
+        run: xvfb-run -a -s "-screen 0 1920x1080x24" env BRACE_VISUAL_LABEL=fhd BRACE_VISUAL_WIDTH=1920 BRACE_VISUAL_HEIGHT=1080 npm run verify:visual
+      - name: Visual smoke 2560x1440
+        run: xvfb-run -a -s "-screen 0 2560x1440x24" env BRACE_VISUAL_LABEL=qhd BRACE_VISUAL_WIDTH=2560 BRACE_VISUAL_HEIGHT=1440 npm run verify:visual
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BRACE-Visual-Smoke
+          path: brace-interface/artifacts/brace-shell-*.png
+          if-no-files-found: error
+
+  package-linux:
+    if: github.event_name == 'pull_request'
+    needs: verify
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: brace-interface
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: brace-interface/package-lock.json
+      - run: npm ci
+      - run: npm run dist:linux
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BRACE-Linux-AppImage
+          path: brace-interface/release/*.AppImage
+          if-no-files-found: error

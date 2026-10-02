@@ -5,18 +5,15 @@ const invoke = (channel, payload) => ipcRenderer.invoke(channel, payload);
 contextBridge.exposeInMainWorld("braceDesktop", {
   platform: process.platform,
   appMode: "desktop",
-  brainPathHint: "C:/Users/Admin/Documents/BRACE-Brain",
+  brainPathHint: "",
   state: () => invoke("state:get"),
   updateSettings: (patch) => invoke("settings:update", patch),
-  saveSecret: (payload) => invoke("settings:save-secret", payload),
   updatePermission: (payload) => invoke("permissions:update", payload),
   listLogs: () => invoke("logs:list"),
   clearLogs: () => invoke("logs:clear"),
   listChat: () => invoke("chat:list"),
   saveChat: (messages) => invoke("chat:save", messages),
   clearChat: () => invoke("chat:clear"),
-  askAi: (payload) => invoke("ai:chat", payload),
-  testAi: () => invoke("ai:test"),
   systemInfo: () => invoke("system:get"),
   selectFiles: () => invoke("files:select"),
   selectFolder: () => invoke("folders:select"),
@@ -28,11 +25,14 @@ contextBridge.exposeInMainWorld("braceDesktop", {
   addApp: () => invoke("apps:add"),
   deleteApp: (id) => invoke("apps:delete", id),
   launchApp: (app) => invoke("apps:launch", app),
-  runAgent: (payload) => invoke("agent:run", payload),
-  approveAgent: (payload) => invoke("agent:approve", payload),
-  rejectAgent: (payload) => invoke("agent:reject", payload),
-  cancelAgent: (payload) => invoke("agent:cancel", payload),
-  listAgentTasks: () => invoke("agent:list"),
+  codexStatus: () => invoke("codex:status"),
+  codexRun: (payload) => invoke("codex:run", payload),
+  codexInterrupt: () => invoke("codex:interrupt"),
+  codexNewThread: () => invoke("codex:new-thread"),
+  codexApproval: (payload) => invoke("codex:approval", payload),
+  secondBrainStatus: () => invoke("brain:status"),
+  secondBrainSearch: (payload) => invoke("brain:search", payload),
+  selectSecondBrain: () => invoke("brain:select"),
   listTools: () => invoke("tools:list"),
   dryRunTool: (payload) => invoke("tools:dry-run", payload),
   listMemories: () => invoke("memory:list"),
@@ -49,11 +49,13 @@ contextBridge.exposeInMainWorld("braceDesktop", {
   listProjects: () => invoke("projects:list"),
   addProject: (payload) => invoke("projects:add", payload),
   scanProject: (payload) => invoke("projects:scan", payload),
-  voiceStatus: () => invoke("voice:status"),
-  getVoiceConfig: () => invoke("voice:config:get"),
-  updateVoiceConfig: (payload) => invoke("voice:config:update", payload),
-  listVoiceOptions: () => invoke("voice:voices"),
-  logVoiceEvent: (payload) => invoke("voice:log", payload),
+  localVoiceStatus: () => invoke("voice-local:status"),
+  warmLocalVoice: () => invoke("voice-local:warm"),
+  transcribeLocalVoice: (payload) => invoke("voice-local:transcribe", payload),
+  synthesizeLocalVoice: (payload) => invoke("voice-local:synthesize", payload),
+  warmWakeWord: () => invoke("voice-local:wake-warm"),
+  predictWakeWord: (payload) => invoke("voice-local:wake-predict", payload),
+  resetWakeWord: () => invoke("voice-local:wake-reset"),
   clearAllData: () => invoke("data:clear-all"),
   onHotkey: (callback) => {
     const listener = (_event, name) => callback(name);
@@ -64,6 +66,36 @@ contextBridge.exposeInMainWorld("braceDesktop", {
     const listener = (_event, payload) => callback(payload);
     ipcRenderer.on("brace:agent-event", listener);
     return () => ipcRenderer.removeListener("brace:agent-event", listener);
+  },
+  onCodexStatus: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on("brace:codex-status", listener);
+    return () => ipcRenderer.removeListener("brace:codex-status", listener);
+  },
+  onCodexDelta: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on("brace:codex-delta", listener);
+    return () => ipcRenderer.removeListener("brace:codex-delta", listener);
+  },
+  onCodexEvent: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on("brace:codex-event", listener);
+    return () => ipcRenderer.removeListener("brace:codex-event", listener);
+  },
+  onCodexApproval: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on("brace:codex-approval", listener);
+    return () => ipcRenderer.removeListener("brace:codex-approval", listener);
+  },
+  onLocalVoiceStatus: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on("brace:local-voice-status", listener);
+    return () => ipcRenderer.removeListener("brace:local-voice-status", listener);
+  },
+  onLocalVoiceEvent: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on("brace:local-voice-event", listener);
+    return () => ipcRenderer.removeListener("brace:local-voice-event", listener);
   },
   onApprovalRequest: (callback) => {
     const listener = (_event, payload) => callback(payload);
