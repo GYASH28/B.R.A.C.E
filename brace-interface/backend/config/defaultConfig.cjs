@@ -34,6 +34,7 @@ function defaultSettings() {
     defaultProjectsFolder: path.join(os.homedir(), "Documents"),
     defaultDownloadsFolder: path.join(os.homedir(), "Downloads"),
     safeFolders: [VAULT_PATH, path.join(os.homedir(), "Documents"), path.join(os.homedir(), "Downloads")],
+    secondBrainPath: process.env.BRACE_BRAIN_PATH || "",
     appPaths: {
       vscode: "code",
       chrome: "chrome",
