@@ -51,7 +51,7 @@ export function VoiceSettings({
         <section className="glass-panel rounded-2xl border border-white/10 p-6">
           <p className="text-xs uppercase tracking-[0.24em] text-cyan-200">Voice engine</p>
           <h1 className="mt-2 text-3xl font-semibold text-white">Voice settings</h1>
-          <p className="mt-3 text-slate-400">Local providers are used when installed. Browser Fallback stays available and clearly marked.</p>
+          <p className="mt-3 text-slate-400">GPT-Live-1 is the primary full-duplex voice engine. Local voice remains available as an offline fallback.</p>
         </section>
 
         <section className="grid gap-4 md:grid-cols-2">
@@ -59,7 +59,7 @@ export function VoiceSettings({
             <Select label="Mode" value={config.mode} onChange={(mode) => onUpdate({ mode: mode as VoiceConfig["mode"] })} options={[
               ["best-local", "Best Local Voice"],
               ["fast-local", "Fast Local"],
-              ["online-high-quality", "Online High Quality"],
+              ["online-high-quality", "GPT-Live-1 · Full Duplex"],
               ["browser-fallback", "Browser Fallback"],
             ]} />
             <Select label="Voice" value={config.selectedVoice} onChange={(selectedVoice) => onUpdate({ selectedVoice })} options={voiceOptions.map((voice) => [voice.id, voice.label])} />
@@ -92,8 +92,8 @@ export function VoiceSettings({
           <Panel title="Safety controls">
             <Toggle checked={config.interruptionEnabled} label="Interruption / barge-in" onClick={() => onUpdate({ interruptionEnabled: !config.interruptionEnabled })} />
             <Toggle checked={config.continuousListening} label="Continuous listening" onClick={() => onUpdate({ continuousListening: !config.continuousListening })} />
-            <Toggle checked={config.wakeWordEnabled} label="Wake word placeholder" onClick={() => onUpdate({ wakeWordEnabled: !config.wakeWordEnabled })} />
-            <Toggle checked={config.onlineVoiceEnabled} label="Allow online voice mode" onClick={() => onUpdate({ onlineVoiceEnabled: !config.onlineVoiceEnabled })} />
+            <Toggle checked={config.wakeWordEnabled} label="Wake word / hands-free mode" onClick={() => onUpdate({ wakeWordEnabled: !config.wakeWordEnabled })} />
+            <Toggle checked={config.onlineVoiceEnabled} label="Enable GPT-Live-1" onClick={() => onUpdate({ onlineVoiceEnabled: !config.onlineVoiceEnabled })} />
             <Toggle checked={config.saveTranscripts} label="Save transcripts" onClick={() => onUpdate({ saveTranscripts: !config.saveTranscripts })} />
             <button className="secondary-button" onClick={() => onUpdate(defaultVoiceConfig)} type="button"><RotateCcw size={16} /> Reset voice</button>
           </Panel>
