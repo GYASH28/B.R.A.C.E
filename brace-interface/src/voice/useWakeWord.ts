@@ -67,6 +67,7 @@ export function useWakeWord({
   const [score, setScore] = useState(0);
   const [error, setError] = useState("");
 
+  const activeRef = useRef(false);
   const streamRef = useRef<MediaStream | null>(null);
   const contextRef = useRef<AudioContext | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
@@ -107,6 +108,7 @@ export function useWakeWord({
     contextRef.current = null;
     if (context && context.state !== "closed") void context.close();
 
+    activeRef.current = false;
     setActive(false);
     setScore(0);
   }, []);
@@ -149,7 +151,7 @@ export function useWakeWord({
   }, [stop, threshold]);
 
   const start = useCallback(async () => {
-    if (!enabled || !available || paused || active || startingRef.current || !window.braceDesktop) return;
+    if (!enabled || !available || paused || activeRef.current || startingRef.current || !window.braceDesktop) return;
 
     const generation = ++generationRef.current;
     startingRef.current = true;
@@ -209,6 +211,7 @@ export function useWakeWord({
         void pump();
       };
 
+      activeRef.current = true;
       setActive(true);
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : "Wake-word microphone failed.";
@@ -217,7 +220,7 @@ export function useWakeWord({
     } finally {
       startingRef.current = false;
     }
-  }, [active, available, enabled, paused, pump, stop]);
+  }, [available, enabled, paused, pump, stop]);
 
   useEffect(() => {
     if (enabled && available && !paused) void start();
