@@ -320,12 +320,16 @@ export default function App() {
       provider?: string;
       mode?: string;
       sources?: Array<{ title?: string; url: string }>;
+      estimatedCostUsd?: number | null;
     };
     if (!result?.ok && !result?.text) throw new Error(result?.error ?? "Agent runtime failed.");
     const sourceText = result.sources?.length
       ? `\n\nSources:\n${result.sources.slice(0, 6).map((source) => `- ${source.title || source.url}: ${source.url}`).join("\n")}`
       : "";
-    const finalText = `${result.text ?? "Agent task updated."}${sourceText}\n\nRoute: local brain checked first -> B.R.A.C.E agent${result.provider ? ` -> ${result.provider}` : ""}.`;
+    const costText = typeof result.estimatedCostUsd === "number"
+      ? ` · backend text cost ~${result.estimatedCostUsd.toFixed(4)}`
+      : "";
+    const finalText = `${result.text ?? "Agent task updated."}${sourceText}\n\nRoute: local brain checked first -> B.R.A.C.E agent${result.provider ? ` -> ${result.provider}` : ""}${costText}.`;
     setMessages((current) => current.map((message) => (message.id === pendingId ? { ...message, source: "agent", confidence: 76, text: finalText } : message)));
     await refreshAgentState();
     await refreshLogs();
@@ -834,6 +838,7 @@ function HomePage({
       ? "Browser fallback active"
       : `${voiceAgent.status?.ttsProvider ?? "Local voice"} active`;
   const statusText = voiceAgent.error || voiceStateLabel[voiceAgent.orbState] || voiceReady;
+  const liveVoiceCostUsd = (voiceAgent.liveUsageSeconds / 60) * 0.05;
   const quickChips: { label: string; page?: PageId; run?: () => void }[] = [
     { label: "Open VS Code", page: "tasks" },
     { label: "Search Files", page: "files" },
@@ -849,7 +854,12 @@ function HomePage({
       <div className="flex flex-wrap items-center justify-center gap-2">
         <StatusBadge label={desktopReady ? "Desktop bridge online" : "Browser mode limited"} tone={desktopReady ? "green" : "warn"} />
         <StatusBadge label={voiceReady} tone={voiceAgent.status?.fallbackActive ? "warn" : "cyan"} />
-        {voiceAgent.liveConnected && <StatusBadge label={`Live ${Math.round(voiceAgent.liveUsageSeconds)}s`} tone="cyan" />}
+        {voiceAgent.liveConnected && (
+          <StatusBadge
+            label={`Live ${Math.round(voiceAgent.liveUsageSeconds)}s · ${liveVoiceCostUsd.toFixed(3)}`}
+            tone="cyan"
+          />
+        )}
         <StatusBadge label={`AI: ${provider}`} tone={provider === "offline" ? "warn" : "purple"} />
         <StatusBadge label={safeMode ? "Safe Mode on" : "Safe Mode off"} tone={safeMode ? "green" : "warn"} />
       </div>
