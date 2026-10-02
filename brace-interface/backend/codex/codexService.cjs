@@ -726,5 +726,4 @@ module.exports = {
   createCodexService,
   chooseModelForProfile,
   effortForProfile,
-  inferAgentName,
 };
