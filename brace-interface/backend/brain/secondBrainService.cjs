@@ -81,6 +81,7 @@ function createSecondBrainService({ stateStore, memoryManager, noteManager, logg
   let cachedRoot = "";
   let cachedFiles = [];
   let cachedAt = 0;
+  const textCache = new Map();
 
   function configuredPath() {
     const state = stateStore.readState();
@@ -91,6 +92,32 @@ function createSecondBrainService({ stateStore, memoryManager, noteManager, logg
     cachedRoot = "";
     cachedFiles = [];
     cachedAt = 0;
+    textCache.clear();
+  }
+
+  function readCachedText(file) {
+    let stat;
+    try {
+      stat = fs.statSync(file);
+    } catch {
+      textCache.delete(file);
+      return null;
+    }
+    if (!stat.isFile() || stat.size > 350_000) return null;
+
+    const cached = textCache.get(file);
+    if (cached && cached.mtimeMs === stat.mtimeMs && cached.size === stat.size) {
+      return cached.text;
+    }
+
+    try {
+      const text = fs.readFileSync(file, "utf8");
+      textCache.set(file, { mtimeMs: stat.mtimeMs, size: stat.size, text });
+      return text;
+    } catch {
+      textCache.delete(file);
+      return null;
+    }
   }
 
   function setVault(vaultPath) {
@@ -166,11 +193,8 @@ function createSecondBrainService({ stateStore, memoryManager, noteManager, logg
     const root = configuredPath();
     if (root && fs.existsSync(root)) {
       for (const file of filesForVault(root)) {
-        let stat;
-        try { stat = fs.statSync(file); } catch { continue; }
-        if (stat.size > 350_000) continue;
-        let text = "";
-        try { text = fs.readFileSync(file, "utf8"); } catch { continue; }
+        const text = readCachedText(file);
+        if (text == null) continue;
         const relative = path.relative(root, file);
         const score = scoreText(`${relative}\n${text}`, terms);
         if (score > 0) {
