@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld("braceDesktop", {
   askAi: (payload) => invoke("ai:chat", payload),
   testAi: () => invoke("ai:test"),
   listAgents: () => invoke("agents:catalog"),
+  listSkills: () => invoke("skills:list"),
   createLiveSession: (payload) => invoke("live:create-session", payload),
   runLiveDelegation: (payload) => invoke("live:delegate", payload),
   systemInfo: () => invoke("system:get"),
