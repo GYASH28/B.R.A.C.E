@@ -1,4 +1,5 @@
-const { callProvider } = require("../ai/providerRouter.cjs");\nconst { runSubagent } = require("../agents/subagentManager.cjs");
+const { callProvider } = require("../ai/providerRouter.cjs");
+const { runSubagent } = require("../agents/subagentManager.cjs");
 const { requiresApproval } = require("../security/safetyClassifier.cjs");
 const { classifyIntent } = require("./intentClassifier.cjs");
 const { buildContext } = require("./contextBuilder.cjs");
