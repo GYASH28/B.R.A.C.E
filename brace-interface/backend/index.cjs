@@ -1,6 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { createAgentRuntime } = require("./agent/agentRuntime.cjs");
+const { createCodexService } = require("./codex/codexService.cjs");
 const { publicAgentCatalog } = require("./agents/catalog.cjs");
 const { createLiveSession } = require("./live/liveSession.cjs");
 const { publicSkills } = require("./skills/skillRegistry.cjs");
@@ -60,6 +61,7 @@ function createBackend({ app, dialog, safeStorage, shell, mainWindow }) {
   const approvals = createApprovalManager({ stateStore });
   const executor = createExecutor({ toolRouter, stateStore, memoryManager, logger, pathGuard });
   const sendEvent = (channel, payload) => mainWindow()?.webContents?.send(channel, payload);
+  const codexService = createCodexService({ sendEvent, logger, stateStore });
 
   function getSettings() {
     const settings = { ...stateStore.readState().settings };
@@ -182,6 +184,7 @@ function createBackend({ app, dialog, safeStorage, shell, mainWindow }) {
     taskState,
     approvals,
     agentRuntime,
+    codexService,
     toolRouter,
     ensureState,
     handlers: {
@@ -324,6 +327,38 @@ function createBackend({ app, dialog, safeStorage, shell, mainWindow }) {
         logger.log("privacy", "Local app data and protected secrets reset");
         return { ok: true };
       },
+      codexStatus: async () => {
+        try {
+          await codexService.start();
+        } catch (error) {
+          logger.log("error", `Codex startup failed: ${error.message}`, {}, "low", "error");
+        }
+        return codexService.status();
+      },
+      codexRun: async (payload) => {
+        const prompt = String(payload?.prompt || payload?.command || "").trim();
+        if (!prompt) return { ok: false, error: "Prompt is empty." };
+        try {
+          const result = await codexService.run(prompt, {
+            cwd: payload?.workspacePath || payload?.cwd || process.cwd(),
+            profile: payload?.profile,
+            workspaceWrite: payload?.workspaceWrite,
+          });
+          logger.log("codex", "Codex turn completed.", {
+            model: result.model,
+            effort: result.effort,
+            profile: result.decision?.profile,
+            category: result.decision?.category,
+          });
+          return result;
+        } catch (error) {
+          logger.log("error", `Codex turn failed: ${error.message}`, {}, "medium", "error");
+          return { ok: false, error: error.message, text: `Codex error: ${error.message}` };
+        }
+      },
+      codexInterrupt: () => codexService.interrupt(),
+      codexNewThread: () => codexService.newThread(),
+      codexApproval: ({ id, allow, forSession }) => codexService.respondApproval(id, Boolean(allow), Boolean(forSession)),
       agentRun: (payload) => agentRuntime.run(payload),
       agentApprove: ({ approvalId }) => agentRuntime.approve(approvalId),
       agentReject: ({ approvalId }) => agentRuntime.reject(approvalId),
