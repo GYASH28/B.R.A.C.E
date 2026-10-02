@@ -68,7 +68,8 @@ try {
     throw new Error(`Desktop shell should not page-scroll: ${JSON.stringify(metrics)}`);
   }
 
-  const screenshotPath = path.join(artifactDir, "brace-shell-smoke.png");
+  const label = String(process.env.BRACE_VISUAL_LABEL || "smoke").replace(/[^a-z0-9_-]+/gi, "-").toLowerCase();
+  const screenshotPath = path.join(artifactDir, `brace-shell-${label}.png`);
   await page.screenshot({ path: screenshotPath, fullPage: true });
   process.stdout.write(`✅ Electron visual smoke passed · ${metrics.width}x${metrics.height}\n`);
   process.stdout.write(`Screenshot: ${screenshotPath}\n`);
