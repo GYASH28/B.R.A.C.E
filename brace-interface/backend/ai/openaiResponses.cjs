@@ -9,6 +9,23 @@ function extractResponseText(data) {
   return chunks.join("\n").trim();
 }
 
+function extractResponseSources(data) {
+  const seen = new Set();
+  const sources = [];
+  for (const item of data?.output || []) {
+    for (const part of item?.content || []) {
+      for (const annotation of part?.annotations || []) {
+        const citation = annotation?.type === "url_citation" ? annotation : annotation?.url_citation;
+        const url = citation?.url;
+        if (!url || seen.has(url)) continue;
+        seen.add(url);
+        sources.push({ url, title: citation?.title || url });
+      }
+    }
+  }
+  return sources;
+}
+
 async function callOpenAIResponses(settings, prompt, options = {}) {
   const apiKey = settings.openAiApiKey || settings.apiKey || process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OpenAI API key is not saved.");
@@ -39,7 +56,7 @@ async function callOpenAIResponses(settings, prompt, options = {}) {
 
   const text = extractResponseText(data);
   if (!text) throw new Error("OpenAI Responses returned no text.");
-  return { text, responseId: data.id, model, effort, mode, usage: data.usage || null };
+  return { text, sources: extractResponseSources(data), responseId: data.id, model, effort, mode, usage: data.usage || null };
 }
 
-module.exports = { callOpenAIResponses, extractResponseText };
+module.exports = { callOpenAIResponses, extractResponseSources, extractResponseText };
