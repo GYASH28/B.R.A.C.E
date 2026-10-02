@@ -5,6 +5,7 @@ import { AgentField, type ActiveAgentNode } from "./agents/AgentField";
 import { CodexApprovalOverlay, type CodexApproval } from "./approvals/CodexApprovalOverlay";
 import { BraceComposer } from "./composer/BraceComposer";
 import { BraceOrb, type BraceOrbState } from "./orb/BraceOrb";
+import { useLocalVoice } from "./voice/useLocalVoice";
 import type { ChatMessage, FileEntry, ProjectInfo } from "./types";
 
 type BridgeState = {
@@ -32,6 +33,7 @@ type CodexResult = {
   threadId?: string;
   model?: string;
   effort?: string;
+  memorySources?: Array<{ title?: string; relativePath?: string | null }>;
   decision?: {
     category?: string;
     profile?: string;
@@ -53,6 +55,7 @@ type CodexEvent = {
   category?: string;
   model?: string;
   effort?: string;
+  count?: number;
 };
 
 type AgentEvent = {
@@ -61,6 +64,14 @@ type AgentEvent = {
   agentName?: string;
   detail?: string;
   status?: ActiveAgentNode["status"];
+};
+
+type SecondBrainStatus = {
+  connected?: boolean;
+  path?: string | null;
+  indexedFiles?: number;
+  localMemories?: number;
+  localNotes?: number;
 };
 
 const initialMessage: ChatMessage = {
@@ -102,6 +113,7 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [commandOpen, setCommandOpen] = useState(false);
   const streamingMessageId = useRef<number | null>(null);
+  const voice = useLocalVoice();
 
   const latestAssistant = useMemo(
     () => [...messages].reverse().find((message) => message.role === "assistant"),
@@ -182,6 +194,16 @@ export default function App() {
   }, [loaded, messages]);
 
   useEffect(() => {
+    if (voice.recording) setOrbState("listening");
+    else if (voice.transcribing) setOrbState("transcribing");
+    else if (voice.speaking) setOrbState("speaking");
+  }, [voice.recording, voice.speaking, voice.transcribing]);
+
+  useEffect(() => {
+    if (voice.error) setNotice(voice.error);
+  }, [voice.error]);
+
+  useEffect(() => {
     const disposeStatus = window.braceDesktop?.onCodexStatus?.((raw) => {
       const next = raw as CodexStatus;
       setCodex(next);
@@ -194,7 +216,7 @@ export default function App() {
       } else if (next.status === "auth-required") {
         setOrbState("offline");
         setNotice("Codex needs ChatGPT sign-in. Run “codex login” once, then reconnect.");
-      } else if (next.ready && !busy && !approval) {
+      } else if (next.ready && !busy && !approval && !voice.recording && !voice.speaking && !voice.transcribing) {
         setOrbState("idle");
         if (notice === "Codex lost connection. Restarting…") setNotice("");
       }
@@ -219,6 +241,8 @@ export default function App() {
         if (route) setNotice(route);
       } else if (event.type === "plan") {
         setOrbState("planning");
+      } else if (event.type === "memory.retrieved") {
+        setNotice(`Second Brain · ${event.count || 0} relevant source${event.count === 1 ? "" : "s"}`);
       } else if (event.itemType === "commandExecution" || event.itemType === "fileChange" || event.itemType === "mcpToolCall") {
         setOrbState("working");
         const action = event.command || event.tool;
@@ -261,25 +285,13 @@ export default function App() {
       disposeAgent?.();
       disposeApproval?.();
     };
-  }, [approval, busy, notice, retireAgent, setAgentNode]);
+  }, [approval, busy, notice, retireAgent, setAgentNode, voice.recording, voice.speaking, voice.transcribing]);
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        setCommandOpen((current) => !current);
-      }
-      if (event.key === "Escape") setCommandOpen(false);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  const runPrompt = useCallback(async (query: string, { speak = false }: { speak?: boolean } = {}) => {
+    const clean = query.trim();
+    if (!clean || busy || !window.braceDesktop || !codex?.ready) return;
 
-  const send = async () => {
-    const query = input.trim();
-    if (!query || busy || !window.braceDesktop || !codex?.ready) return;
-
-    const userMessage: ChatMessage = { id: id(), role: "user", text: query };
+    const userMessage: ChatMessage = { id: id(), role: "user", text: clean };
     const responseId = id();
     const pendingResponse: ChatMessage = { id: responseId, role: "assistant", source: "agent", text: "" };
 
@@ -295,21 +307,30 @@ export default function App() {
         ? `\n\nSelected file: ${attachment.path}\nUse it only if it is relevant to my request.`
         : "";
       const result = (await window.braceDesktop.codexRun({
-        prompt: `${query}${attachmentContext}`,
+        prompt: `${clean}${attachmentContext}`,
         workspacePath: projects[0]?.path,
       })) as CodexResult;
 
       const finalText = String(result.text || result.error || "").trim();
-      setMessages((current) => current.map((message) => {
-        if (message.id !== responseId) return message;
-        if (finalText) return { ...message, text: finalText };
-        return { ...message, text: result.ok === false ? "Codex could not complete that turn." : "Done." };
-      }));
+      const resolvedText = finalText || (result.ok === false ? "Codex could not complete that turn." : "Done.");
+
+      setMessages((current) => current.map((message) =>
+        message.id === responseId ? { ...message, text: resolvedText } : message,
+      ));
 
       if (result.ok === false) {
         setOrbState("error");
         setNotice(result.error || "Codex turn failed.");
         window.setTimeout(() => setOrbState(codex?.ready ? "idle" : "offline"), 1700);
+      } else if (speak && resolvedText) {
+        setNotice("Preparing local voice…");
+        try {
+          await voice.speak(resolvedText);
+          setNotice("");
+          setOrbState("idle");
+        } catch {
+          setOrbState("idle");
+        }
       } else {
         setOrbState("success");
         setNotice([result.decision?.profile, result.model, result.effort].filter(Boolean).join(" · "));
@@ -331,16 +352,92 @@ export default function App() {
       setBusy(false);
       setAttachment(null);
     }
-  };
+  }, [attachment, busy, codex?.ready, projects, voice]);
 
-  const stop = async () => {
+  const send = useCallback(async () => {
+    await runPrompt(input);
+  }, [input, runPrompt]);
+
+  const stop = useCallback(async () => {
+    voice.stopSpeaking();
+    if (voice.recording) {
+      try { await voice.stopListening(); } catch {}
+    }
     await window.braceDesktop?.codexInterrupt();
     streamingMessageId.current = null;
     setBusy(false);
     setApproval(null);
     setOrbState(codex?.ready ? "idle" : "offline");
     setNotice("Task stopped");
-  };
+  }, [codex?.ready, voice]);
+
+  const toggleVoice = useCallback(async () => {
+    if (!window.braceDesktop) return;
+
+    try {
+      if (voice.recording) {
+        setOrbState("transcribing");
+        setNotice("Transcribing locally…");
+        const transcript = await voice.stopListening();
+        if (!transcript) {
+          setNotice("I didn’t catch anything.");
+          setOrbState(codex?.ready ? "idle" : "offline");
+          return;
+        }
+        setNotice("");
+        await runPrompt(transcript, { speak: true });
+        return;
+      }
+
+      if (voice.speaking) {
+        voice.stopSpeaking();
+      }
+
+      if (busy) {
+        await window.braceDesktop.codexInterrupt();
+        setBusy(false);
+        streamingMessageId.current = null;
+      }
+
+      const deps = voice.status?.dependencies;
+      if (deps && (!deps.fasterWhisper || !deps.kokoro || !deps.soundfile || !deps.numpy)) {
+        setNotice("Local voice dependencies are incomplete. Run the BRACE setup script once.");
+        setOrbState(codex?.ready ? "idle" : "offline");
+        return;
+      }
+
+      await voice.startListening();
+      setNotice("Listening · click the orb or mic again when you’re done");
+      setOrbState("listening");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Voice input failed.";
+      setNotice(message);
+      setOrbState("error");
+      window.setTimeout(() => setOrbState(codex?.ready ? "idle" : "offline"), 1600);
+    }
+  }, [busy, codex?.ready, runPrompt, voice]);
+
+  useEffect(() => {
+    const dispose = window.braceDesktop?.onHotkey?.((name) => {
+      if (name === "startVoice") void toggleVoice();
+      if (name === "commandPalette") setCommandOpen(true);
+      if (name === "openAssistant") window.focus();
+      if (name === "mute") voice.stopSpeaking();
+    });
+    return () => dispose?.();
+  }, [toggleVoice, voice]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setCommandOpen((current) => !current);
+      }
+      if (event.key === "Escape") setCommandOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const attach = async () => {
     if (!window.braceDesktop) return;
@@ -352,12 +449,6 @@ export default function App() {
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Could not attach file");
     }
-  };
-
-  const voice = () => {
-    setNotice("Local voice is not enabled in the Codex-native build yet.");
-    setOrbState("listening");
-    window.setTimeout(() => setOrbState(codex?.ready ? "idle" : "offline"), 850);
   };
 
   const approve = async () => {
@@ -387,6 +478,7 @@ export default function App() {
   };
 
   const newConversation = async () => {
+    voice.stopSpeaking();
     await window.braceDesktop?.codexNewThread();
     setMessages([initialMessage]);
     setActiveAgents([]);
@@ -394,6 +486,27 @@ export default function App() {
     setNotice("");
     setOrbState(codex?.ready ? "idle" : "offline");
     setCommandOpen(false);
+  };
+
+  const secondBrainAction = async () => {
+    if (!window.braceDesktop) return;
+    try {
+      const current = await window.braceDesktop.secondBrainStatus() as SecondBrainStatus;
+      if (current.connected) {
+        setNotice(`Second Brain · ${current.indexedFiles || 0} vault files · ${current.localMemories || 0} memories`);
+      } else {
+        const selected = await window.braceDesktop.selectSecondBrain() as { status?: SecondBrainStatus; cancelled?: boolean };
+        if (!selected.cancelled && selected.status?.connected) {
+          setNotice(`Second Brain connected · ${selected.status.indexedFiles || 0} files`);
+        } else {
+          setNotice("Second Brain not connected.");
+        }
+      }
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Second Brain status failed.");
+    } finally {
+      setCommandOpen(false);
+    }
   };
 
   const label = statusLabel(codex, busy, approval);
@@ -422,7 +535,7 @@ export default function App() {
         <AgentField nodes={activeAgents} />
 
         <div className="brace-orb-zone">
-          <BraceOrb state={orbState} onClick={voice} />
+          <BraceOrb state={orbState} energy={voice.energy} onClick={() => void toggleVoice()} />
           <motion.div
             key={orbState}
             initial={{ opacity: 0, y: 4 }}
@@ -462,10 +575,10 @@ export default function App() {
         disabled={!loaded || !window.braceDesktop || !codex?.ready || Boolean(approval)}
         attachmentLabel={attachment?.name}
         onChange={setInput}
-        onSend={send}
-        onStop={stop}
-        onAttach={attach}
-        onVoice={voice}
+        onSend={() => void send()}
+        onStop={() => void stop()}
+        onAttach={() => void attach()}
+        onVoice={() => void toggleVoice()}
       />
 
       <AnimatePresence>
@@ -487,7 +600,8 @@ export default function App() {
               <div className="brace-command-title"><Command size={15} /> Quick controls</div>
               <button type="button" onClick={() => void newConversation()}>New conversation</button>
               <button type="button" onClick={() => { void connectCodex(); setCommandOpen(false); }}>Reconnect Codex</button>
-              <button type="button" onClick={() => { setNotice("Second Brain → Codex retrieval is the next runtime layer being wired."); setCommandOpen(false); }}>Second Brain status</button>
+              <button type="button" onClick={() => void secondBrainAction()}>Second Brain</button>
+              <button type="button" onClick={() => { void voice.warm(); setNotice("Warming local voice…"); setCommandOpen(false); }}>Warm local voice</button>
               <button type="button" onClick={() => { setNotice(`Codex ${codex?.version || "not detected"} · ${codex?.account?.planType || "account unknown"}`); setCommandOpen(false); }}>Runtime status</button>
             </motion.div>
           </motion.div>
