@@ -53,6 +53,9 @@ contextBridge.exposeInMainWorld("braceDesktop", {
   warmLocalVoice: () => invoke("voice-local:warm"),
   transcribeLocalVoice: (payload) => invoke("voice-local:transcribe", payload),
   synthesizeLocalVoice: (payload) => invoke("voice-local:synthesize", payload),
+  warmWakeWord: () => invoke("voice-local:wake-warm"),
+  predictWakeWord: (payload) => invoke("voice-local:wake-predict", payload),
+  resetWakeWord: () => invoke("voice-local:wake-reset"),
   clearAllData: () => invoke("data:clear-all"),
   onHotkey: (callback) => {
     const listener = (_event, name) => callback(name);
