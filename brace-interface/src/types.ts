@@ -63,6 +63,8 @@ export type SettingsState = {
   ollamaModel: string;
   customEndpoint: string;
   offlineMode: boolean;
+  orchestratedAI?: boolean;
+  liveVoice?: string;
   safeMode: boolean;
   voiceRate: number;
   voicePitch: number;
