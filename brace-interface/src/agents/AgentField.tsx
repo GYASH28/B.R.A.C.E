@@ -21,7 +21,7 @@ export function AgentField({ nodes }: { nodes: ActiveAgentNode[] }) {
   return (
     <div className="agent-field" aria-live="polite">
       <AnimatePresence>
-        {nodes.slice(0, 4).map((node, index) => {
+        {nodes.slice(0, 3).map((node, index) => {
           const position = nodePosition(index);
           return (
             <motion.div
