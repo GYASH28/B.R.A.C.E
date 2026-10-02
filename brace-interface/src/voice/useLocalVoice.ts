@@ -65,6 +65,9 @@ export function useLocalVoice() {
   const sourceNodeRef = useRef<AudioBufferSourceNode | MediaStreamAudioSourceNode | null>(null);
   const meterFrameRef = useRef<number>(0);
   const playSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const speechQueueRef = useRef<string[]>([]);
+  const pumpingSpeechRef = useRef(false);
+  const stopSpeechGenerationRef = useRef(0);
 
   const stopMeter = useCallback(() => {
     if (meterFrameRef.current) cancelAnimationFrame(meterFrameRef.current);
@@ -82,8 +85,11 @@ export function useLocalVoice() {
   }, [stopMeter]);
 
   const stopSpeaking = useCallback(() => {
+    stopSpeechGenerationRef.current += 1;
+    speechQueueRef.current = [];
     try { playSourceRef.current?.stop(); } catch {}
     playSourceRef.current = null;
+    pumpingSpeechRef.current = false;
     setSpeaking(false);
     closeAudioGraph();
   }, [closeAudioGraph]);
@@ -246,53 +252,85 @@ export function useLocalVoice() {
     }
   }, []);
 
-  const speak = useCallback(async (text: string) => {
+  const playSynthesized = useCallback(async (text: string, generation: number) => {
     const clean = String(text || "").trim();
-    if (!clean || !window.braceDesktop) return;
-
-    stopSpeaking();
+    if (!clean || !window.braceDesktop || generation !== stopSpeechGenerationRef.current) return;
     setError("");
 
+    const result = await window.braceDesktop.synthesizeLocalVoice({
+      text: clean.slice(0, 1200),
+      voice: "bm_george",
+      speed: 1.02,
+    }) as SynthesisResult;
+    if (!result?.ok || !result.audioBase64 || generation !== stopSpeechGenerationRef.current) return;
+
+    const blob = base64ToBlob(result.audioBase64, result.mimeType || "audio/wav");
+    const data = await blob.arrayBuffer();
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextCtor) throw new Error("Web Audio is unavailable.");
+
+    const context = new AudioContextCtor();
+    audioContextRef.current = context;
+    const buffer = await context.decodeAudioData(data.slice(0));
+    if (generation !== stopSpeechGenerationRef.current) {
+      await context.close();
+      return;
+    }
+
+    const source = context.createBufferSource();
+    const analyser = context.createAnalyser();
+    source.buffer = buffer;
+    source.connect(analyser);
+    analyser.connect(context.destination);
+    playSourceRef.current = source;
+    sourceNodeRef.current = source;
+    meterNode(context, analyser);
+    setSpeaking(true);
+
+    await new Promise<void>((resolve) => {
+      source.onended = () => resolve();
+      source.start(0);
+    });
+
+    playSourceRef.current = null;
+    closeAudioGraph();
+  }, [closeAudioGraph, meterNode]);
+
+  const pumpSpeechQueue = useCallback(async () => {
+    if (pumpingSpeechRef.current) return;
+    pumpingSpeechRef.current = true;
+    const generation = stopSpeechGenerationRef.current;
+    setSpeaking(true);
+
     try {
-      const result = await window.braceDesktop.synthesizeLocalVoice({
-        text: clean.slice(0, 2200),
-        voice: "bm_george",
-        speed: 1.02,
-      }) as SynthesisResult;
-      if (!result?.ok || !result.audioBase64) throw new Error("Local speech synthesis failed.");
-
-      const blob = base64ToBlob(result.audioBase64, result.mimeType || "audio/wav");
-      const data = await blob.arrayBuffer();
-      const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextCtor) throw new Error("Web Audio is unavailable.");
-
-      const context = new AudioContextCtor();
-      audioContextRef.current = context;
-      const buffer = await context.decodeAudioData(data.slice(0));
-      const source = context.createBufferSource();
-      const analyser = context.createAnalyser();
-      source.buffer = buffer;
-      source.connect(analyser);
-      analyser.connect(context.destination);
-      playSourceRef.current = source;
-      sourceNodeRef.current = source;
-      meterNode(context, analyser);
-      setSpeaking(true);
-
-      await new Promise<void>((resolve) => {
-        source.onended = () => resolve();
-        source.start(0);
-      });
+      while (speechQueueRef.current.length && generation === stopSpeechGenerationRef.current) {
+        const nextText = speechQueueRef.current.shift();
+        if (!nextText) continue;
+        await playSynthesized(nextText, generation);
+      }
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : "Local speech playback failed.";
       setError(message);
-      throw cause;
     } finally {
-      playSourceRef.current = null;
-      setSpeaking(false);
-      closeAudioGraph();
+      if (generation === stopSpeechGenerationRef.current) {
+        pumpingSpeechRef.current = false;
+        setSpeaking(false);
+        setEnergy(0);
+      }
     }
-  }, [closeAudioGraph, meterNode, stopSpeaking]);
+  }, [playSynthesized]);
+
+  const enqueueSpeech = useCallback((text: string) => {
+    const clean = String(text || "").trim();
+    if (!clean) return;
+    speechQueueRef.current.push(clean);
+    void pumpSpeechQueue();
+  }, [pumpSpeechQueue]);
+
+  const speak = useCallback(async (text: string) => {
+    stopSpeaking();
+    enqueueSpeech(text);
+  }, [enqueueSpeech, stopSpeaking]);
 
   return {
     status,
@@ -305,6 +343,7 @@ export function useLocalVoice() {
     stopListening,
     stopSpeaking,
     speak,
+    enqueueSpeech,
     warm,
     refreshStatus,
   };
