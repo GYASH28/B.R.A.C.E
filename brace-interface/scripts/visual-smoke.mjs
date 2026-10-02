@@ -17,7 +17,7 @@ const screenshotPath = path.join(artifactDir, `brace-shell-${label}.png`);
 fs.mkdirSync(artifactDir, { recursive: true });
 fs.rmSync(screenshotPath, { force: true });
 
-const child = spawn(electronPath, ["."], {
+const child = spawn(electronPath, ["--no-sandbox", "."], {
   cwd: appDir,
   stdio: "inherit",
   env: {
