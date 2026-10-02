@@ -76,6 +76,9 @@ interface Window {
     codexInterrupt: () => Promise<unknown>;
     codexNewThread: () => Promise<unknown>;
     codexApproval: (payload: { id: string; allow: boolean; forSession?: boolean }) => Promise<unknown>;
+    secondBrainStatus: () => Promise<unknown>;
+    secondBrainSearch: (payload: { query: string; limit?: number }) => Promise<unknown>;
+    selectSecondBrain: () => Promise<unknown>;
     runAgent: (payload: BridgePayload) => Promise<unknown>;
     approveAgent: (payload: BridgePayload) => Promise<unknown>;
     rejectAgent: (payload: BridgePayload) => Promise<unknown>;
