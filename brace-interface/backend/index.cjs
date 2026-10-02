@@ -1,6 +1,8 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { createAgentRuntime } = require("./agent/agentRuntime.cjs");\nconst { publicAgentCatalog } = require("./agents/catalog.cjs");\nconst { createLiveSession, runLiveDelegation } = require("./live/liveSession.cjs");
+const { createAgentRuntime } = require("./agent/agentRuntime.cjs");
+const { publicAgentCatalog } = require("./agents/catalog.cjs");
+const { createLiveSession, runLiveDelegation } = require("./live/liveSession.cjs");
 const { createApprovalManager } = require("./agent/approvalManager.cjs");
 const { createExecutor } = require("./agent/executor.cjs");
 const { createTaskStateManager } = require("./agent/taskStateManager.cjs");
