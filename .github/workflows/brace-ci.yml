@@ -1,12 +1,10 @@
 name: BRACE CI
 
 on:
-  push:
-    branches:
-      - feature/live-jarvis-os
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   verify:
