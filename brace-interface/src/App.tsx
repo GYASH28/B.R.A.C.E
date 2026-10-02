@@ -7,11 +7,15 @@ import { PermissionOverlay, type LocalPermission } from "./approvals/PermissionO
 import { BraceComposer } from "./composer/BraceComposer";
 import { BraceOrb, type BraceOrbState } from "./orb/BraceOrb";
 import { useLocalVoice } from "./voice/useLocalVoice";
+import { useWakeWord } from "./voice/useWakeWord";
 import type { ChatMessage, FileEntry, ProjectInfo } from "./types";
 
 type BridgeState = {
   chatHistory?: ChatMessage[];
   projects?: ProjectInfo[];
+  settings?: {
+    wakeWord?: boolean;
+  };
 };
 
 type CodexStatus = {
@@ -129,7 +133,10 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [commandOpen, setCommandOpen] = useState(false);
+  const [wakeWordEnabled, setWakeWordEnabled] = useState(false);
+  const [wakeTurnActive, setWakeTurnActive] = useState(false);
   const streamingMessageId = useRef<number | null>(null);
+  const wakeEnergyRef = useRef(0);
   const speechStreamRef = useRef(false);
   const speechBufferRef = useRef("");
   const speechQueuedRef = useRef(false);
@@ -209,6 +216,7 @@ export default function App() {
         const state = (await window.braceDesktop.state()) as BridgeState;
         setMessages(state.chatHistory?.length ? state.chatHistory : [initialMessage]);
         setProjects(state.projects ?? []);
+        setWakeWordEnabled(Boolean(state.settings?.wakeWord));
       } catch (error) {
         setNotice(error instanceof Error ? error.message : "Failed to initialize B.R.A.C.E");
         setOrbState("error");
@@ -489,6 +497,61 @@ export default function App() {
     }
   }, [busy, codex?.ready, runPrompt, startListening, stopListening, stopSpeaking, voiceRecording, voiceSpeaking, voiceStatus?.dependencies]);
 
+  const wake = useWakeWord({
+    enabled: wakeWordEnabled,
+    available: Boolean(voiceStatus?.dependencies?.openWakeWord),
+    paused: voiceRecording || voiceTranscribing || voiceSpeaking || busy || Boolean(approval) || Boolean(localPermission),
+    threshold: 0.55,
+    onWake: () => {
+      setWakeTurnActive(true);
+      setNotice("Hey Jarvis · listening");
+      void toggleVoice();
+    },
+  });
+
+  useEffect(() => {
+    wakeEnergyRef.current = voiceEnergy;
+  }, [voiceEnergy]);
+
+  useEffect(() => {
+    if (!wakeTurnActive || !voiceRecording) return;
+
+    const startedAt = Date.now();
+    let speechSeen = false;
+    let silenceSince = 0;
+    let stopping = false;
+
+    const timer = window.setInterval(() => {
+      if (stopping) return;
+      const now = Date.now();
+      const energy = wakeEnergyRef.current;
+
+      if (energy >= 0.06) {
+        speechSeen = true;
+        silenceSince = 0;
+      } else if (speechSeen) {
+        if (!silenceSince) silenceSince = now;
+        if (now - silenceSince >= 1000 && now - startedAt >= 700) {
+          stopping = true;
+          setWakeTurnActive(false);
+          void toggleVoice();
+        }
+      }
+
+      if (now - startedAt >= 10_000) {
+        stopping = true;
+        setWakeTurnActive(false);
+        void toggleVoice();
+      }
+    }, 120);
+
+    return () => window.clearInterval(timer);
+  }, [toggleVoice, voiceRecording, wakeTurnActive]);
+
+  useEffect(() => {
+    if (wakeWordEnabled && wake.error) setNotice(wake.error);
+  }, [wake.error, wakeWordEnabled]);
+
   useEffect(() => {
     const dispose = window.braceDesktop?.onHotkey?.((name) => {
       if (name === "startVoice") void toggleVoice();
@@ -620,6 +683,37 @@ export default function App() {
     setCommandOpen(false);
   };
 
+  const toggleWakeWord = async () => {
+    if (!window.braceDesktop) return;
+    const next = !wakeWordEnabled;
+
+    if (next && voiceStatus?.dependencies && !voiceStatus.dependencies.openWakeWord) {
+      setNotice("Hey Jarvis is not installed yet. Run scripts/setup-local-voice.sh once.");
+      setCommandOpen(false);
+      return;
+    }
+
+    try {
+      if (next) {
+        await window.braceDesktop.updatePermission({ name: "microphone", enabled: true });
+        await window.braceDesktop.updateSettings({ wakeWord: true });
+        setWakeWordEnabled(true);
+        setNotice("Hey Jarvis enabled · local and always ready while BRACE is open");
+      } else {
+        await window.braceDesktop.updateSettings({ wakeWord: false });
+        await window.braceDesktop.resetWakeWord();
+        wake.stop();
+        setWakeTurnActive(false);
+        setWakeWordEnabled(false);
+        setNotice("Hey Jarvis disabled");
+      }
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Could not change wake-word mode.");
+    } finally {
+      setCommandOpen(false);
+    }
+  };
+
   const secondBrainAction = async () => {
     if (!window.braceDesktop) return;
     try {
@@ -739,6 +833,9 @@ export default function App() {
               <button type="button" onClick={() => { void connectCodex(); setCommandOpen(false); }}>Reconnect Codex</button>
               <button type="button" onClick={() => void secondBrainAction()}>Second Brain</button>
               <button type="button" onClick={() => { void warmVoice(); setNotice("Warming local voice…"); setCommandOpen(false); }}>Warm local voice</button>
+              <button type="button" onClick={() => void toggleWakeWord()}>
+                {wakeWordEnabled ? "Disable “Hey Jarvis”" : "Enable “Hey Jarvis”"}
+              </button>
               <button type="button" onClick={() => { setNotice(`Codex ${codex?.version || "not detected"} · ${codex?.account?.planType || "account unknown"}`); setCommandOpen(false); }}>Runtime status</button>
             </motion.div>
           </motion.div>
