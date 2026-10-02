@@ -119,6 +119,22 @@ Orb states include:
 
 The orb is Canvas-based and reduces its frame rate while idle/hidden.
 
+## Instant local actions
+
+B.R.A.C.E has a deterministic fast path for a small set of safe, high-frequency desktop commands. These do not spend a Codex turn once the relevant local capability has been approved.
+
+Examples:
+
+- `show my RAM`
+- `show CPU info`
+- `show system info`
+- `open VS Code`
+- `open Downloads`
+- `open Documents`
+- launch an app that you explicitly registered inside B.R.A.C.E
+
+The first use asks for the matching local permission. After that, the action executes locally and the UI labels it `LOCAL · INSTANT`. Complex requests still go through Codex.
+
 ## Codex runtime
 
 B.R.A.C.E keeps one local `codex app-server` process alive instead of spawning a new CLI process for every message.
