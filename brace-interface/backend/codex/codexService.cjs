@@ -96,6 +96,7 @@ function createCodexService({
   const turnBuffers = new Map();
   const finishedTurns = new Map();
   const approvalRequests = new Map();
+  const agentLabels = new Map();
 
   const log = (type, message, detail = {}, risk = "low", result) => {
     try {
@@ -204,12 +205,30 @@ function createCodexService({
     currentTurnId = "";
   }
 
+  function inferAgentName(prompt) {
+    const text = String(prompt || "").toLowerCase();
+    if (/\b(research|source|web|latest|investigate)\b/.test(text)) return "Researcher";
+    if (/\b(review|verify|validate|qa|quality)\b/.test(text)) return "Reviewer";
+    if (/\b(debug|bug|root cause|failure|error)\b/.test(text)) return "Debugger";
+    if (/\b(security|vulnerab|threat|permission|auth)\b/.test(text)) return "Security";
+    if (/\b(ui|ux|design|frontend|visual|layout|animation)\b/.test(text)) return "UI Designer";
+    if (/\b(architect|architecture|system design|structure)\b/.test(text)) return "Architect";
+    if (/\b(data|metric|analytics|dataset|sql)\b/.test(text)) return "Data Analyst";
+    if (/\b(document|docs|readme|write-up|documentation)\b/.test(text)) return "Documentation";
+    if (/\b(git|commit|branch|merge|pull request)\b/.test(text)) return "Git";
+    if (/\b(memory|second brain|obsidian|vault|context)\b/.test(text)) return "Memory";
+    if (/\b(plan|roadmap|sequence|priorit)\b/.test(text)) return "Planner";
+    return "Coder";
+  }
+
   function agentFromCollabItem(item) {
     const receiver = item.receiverThreadIds?.[0] || item.id;
     const prompt = safeString(item.prompt || "Delegated Codex work", 88);
+    const agentName = inferAgentName(prompt);
+    agentLabels.set(receiver, agentName);
     return {
       agent: receiver,
-      agentName: "Codex Agent",
+      agentName,
       detail: prompt,
     };
   }
@@ -245,7 +264,7 @@ function createCodexService({
       sendEvent("brace:agent-event", {
         type: "agent.status",
         agent: item.agentThreadId || item.id,
-        agentName: "Codex Agent",
+        agentName: agentLabels.get(item.agentThreadId) || "Codex Agent",
         status: "working",
         detail: safeString(item.kind || "Working", 88),
         codexItemId: item.id,
@@ -707,4 +726,5 @@ module.exports = {
   createCodexService,
   chooseModelForProfile,
   effortForProfile,
+  inferAgentName,
 };
