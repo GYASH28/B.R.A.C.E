@@ -339,6 +339,9 @@ function createBackend({ app, dialog, safeStorage, shell, mainWindow }) {
       localVoiceWarm: () => localVoiceService.warm(),
       localVoiceTranscribe: (payload) => localVoiceService.transcribeBytes(payload),
       localVoiceSynthesize: (payload) => localVoiceService.synthesize(payload),
+      localVoiceWakeWarm: () => localVoiceService.wakeWarm(),
+      localVoiceWakePredict: (payload) => localVoiceService.wakePredict(payload),
+      localVoiceWakeReset: () => localVoiceService.wakeReset(),
       secondBrainStatus: () => secondBrain.status(),
       secondBrainSearch: ({ query, limit }) => secondBrain.search(query, { limit }),
       secondBrainSelect: async () => {
