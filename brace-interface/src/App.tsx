@@ -203,6 +203,12 @@ export default function App() {
   const [loaded, setLoaded] = useState(false);
 
   const hasGeminiKey = settings.geminiKey === "__saved__";
+  const hasOpenAIKey = settings.openAiApiKey === "__saved__";
+  const hasProviderKey = settings.aiProvider === "openai"
+    ? hasOpenAIKey
+    : settings.aiProvider === "gemini"
+      ? hasGeminiKey
+      : true;
   const selectedFile = files.find((file) => file.id === selectedFileId) ?? files[0];
 
   const showToast = (kind: NonNullable<ToastState>["kind"], text: string) => {
@@ -727,7 +733,7 @@ export default function App() {
             onSend={() => void sendMessage()}
             onStopVoice={voiceAgent.stopAllAudio}
             onVoice={() => void voiceAgent.startListening()}
-            provider={settings.offlineMode ? "offline" : settings.aiProvider}
+            provider={settings.offlineMode ? "offline" : settings.aiProvider === "openai" ? "Luna · High" : settings.aiProvider}
             safeMode={settings.safeMode}
             voiceAgent={voiceAgent}
           />
@@ -750,7 +756,7 @@ export default function App() {
           onToggle={() => setSidebarCollapsed((value) => !value)}
         />
         <section className="flex min-w-0 flex-1 flex-col">
-          <TopBar hasGeminiKey={hasGeminiKey || settings.aiProvider !== "gemini"} micActive={voiceAgent.listening} systemInfo={systemInfo} time={time} />
+          <TopBar hasGeminiKey={hasProviderKey} micActive={voiceAgent.listening} systemInfo={systemInfo} time={time} />
           <PageShell pageKey={activePage}>{renderPage()}</PageShell>
         </section>
       </div>
@@ -810,7 +816,13 @@ function HomePage({
   safeMode: boolean;
   voiceAgent: ReturnType<typeof useVoiceAgent>;
 }) {
-  const voiceReady = voiceAgent.status?.fallbackActive ? "Browser fallback active" : `${voiceAgent.status?.ttsProvider ?? "Voice"} active`;
+  const voiceReady = voiceAgent.isLiveMode
+    ? voiceAgent.liveConnected
+      ? "GPT-Live-1 · full duplex connected"
+      : "GPT-Live-1 · ready"
+    : voiceAgent.status?.fallbackActive
+      ? "Browser fallback active"
+      : `${voiceAgent.status?.ttsProvider ?? "Local voice"} active`;
   const statusText = voiceAgent.error || voiceStateLabel[voiceAgent.orbState] || voiceReady;
   const quickChips: { label: string; page?: PageId; run?: () => void }[] = [
     { label: "Open VS Code", page: "tasks" },
@@ -1535,11 +1547,21 @@ function SettingsPage({
             <RangeField label="Temperature" value={settings.temperature ?? 0.35} min={0} max={1.5} step={0.05} onChange={(temperature) => void updateSettings({ temperature })} />
             <TextField label="Max tokens" value={String(settings.maxTokens ?? 1200)} onChange={(maxTokens) => void updateSettings({ maxTokens: Number(maxTokens) || 1200 })} />
             <ApiKeyField
-              apiKey={secretDrafts.geminiKey}
-              isSaved={settings.geminiKey === "__saved__"}
-              onChange={(geminiKey) => setSecretDrafts({ ...secretDrafts, geminiKey })}
-              onClear={() => void clearSecret("geminiKey")}
-              onSave={() => void saveSecret("geminiKey", secretDrafts.geminiKey)}
+              apiKey={settings.aiProvider === "openai" ? secretDrafts.openAiApiKey : secretDrafts.geminiKey}
+              helper={settings.aiProvider === "openai"
+                ? "Used by GPT-Live-1 and the Luna/Terra/Sol subagent router. The key stays in the Electron backend."
+                : "Used for Gemini requests when Gemini is selected as the provider."}
+              isSaved={settings.aiProvider === "openai" ? settings.openAiApiKey === "__saved__" : settings.geminiKey === "__saved__"}
+              label={settings.aiProvider === "openai" ? "OpenAI API key" : "Gemini API key"}
+              onChange={(value) => settings.aiProvider === "openai"
+                ? setSecretDrafts({ ...secretDrafts, openAiApiKey: value })
+                : setSecretDrafts({ ...secretDrafts, geminiKey: value })}
+              onClear={() => void clearSecret(settings.aiProvider === "openai" ? "openAiApiKey" : "geminiKey")}
+              onSave={() => void saveSecret(
+                settings.aiProvider === "openai" ? "openAiApiKey" : "geminiKey",
+                settings.aiProvider === "openai" ? secretDrafts.openAiApiKey : secretDrafts.geminiKey,
+              )}
+              placeholder={settings.aiProvider === "openai" ? "Paste OpenAI API key" : "Paste Google AI Studio key"}
               saveStatus={secretStatus}
             />
             <button className="secondary-button" onClick={async () => {
