@@ -30,6 +30,7 @@ function registerIpc() {
   handle("ai:chat", handlers.askAi);
   handle("ai:test", handlers.aiTest);
   handle("agents:catalog", handlers.agentsCatalog);
+  handle("skills:list", handlers.skillsList);
   handle("live:create-session", handlers.liveCreateSession);
   handle("live:delegate", handlers.liveDelegate);
   handle("system:get", handlers.systemInfo);
