@@ -8,6 +8,7 @@ type LocalVoiceStatus = {
     kokoro?: boolean;
     soundfile?: boolean;
     numpy?: boolean;
+    openWakeWord?: boolean;
   } | null;
   error?: string | null;
   voice?: string;
