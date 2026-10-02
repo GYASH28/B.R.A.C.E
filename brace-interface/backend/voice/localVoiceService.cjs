@@ -4,12 +4,21 @@ const path = require("node:path");
 const readline = require("node:readline");
 const { spawn } = require("node:child_process");
 
+function defaultWorkerPath() {
+  const sourcePath = path.resolve(__dirname, "..", "..", "scripts", "voice", "brace_voice_worker.py");
+  const resourcesPath = typeof process.resourcesPath === "string" ? process.resourcesPath : "";
+  const unpackedPath = resourcesPath
+    ? path.join(resourcesPath, "app.asar.unpacked", "scripts", "voice", "brace_voice_worker.py")
+    : "";
+  return process.env.BRACE_VOICE_WORKER || (unpackedPath && fs.existsSync(unpackedPath) ? unpackedPath : sourcePath);
+}
+
 function createLocalVoiceService({
   userDataPath,
   logger,
   sendEvent = () => {},
   spawnFn = spawn,
-  workerPath = process.env.BRACE_VOICE_WORKER || path.resolve(__dirname, "..", "..", "scripts", "voice", "brace_voice_worker.py"),
+  workerPath = defaultWorkerPath(),
   pythonBin = process.env.BRACE_VOICE_PYTHON || path.join(os.homedir(), ".local", "share", "brace", "voice", ".venv", "bin", "python"),
 } = {}) {
   let child = null;
