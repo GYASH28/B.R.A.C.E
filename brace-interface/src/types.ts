@@ -86,6 +86,7 @@ export type VoiceOrbState = "idle" | "listening" | "thinking" | "speaking" | "er
 
 export type VoiceConfig = {
   mode: VoiceMode;
+  liveVoice?: string;
   sttProvider: string;
   ttsProvider: string;
   vadProvider: string;
