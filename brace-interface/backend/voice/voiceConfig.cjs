@@ -1,5 +1,5 @@
 const DEFAULT_VOICE_CONFIG = {
-  mode: "best-local",
+  mode: "online-high-quality",
   sttProvider: "faster-whisper",
   ttsProvider: "kokoro",
   vadProvider: "silero",
@@ -14,9 +14,9 @@ const DEFAULT_VOICE_CONFIG = {
   minSpeechMs: 300,
   maxRecordingMs: 45000,
   interruptionEnabled: true,
-  wakeWordEnabled: false,
-  continuousListening: false,
-  onlineVoiceEnabled: false,
+  wakeWordEnabled: true,
+  continuousListening: true,
+  onlineVoiceEnabled: true,
   saveRawAudio: false,
   saveTranscripts: false,
 };
