@@ -7,14 +7,14 @@ const { createPlan } = require("./planner.cjs");
 const { recoverySuggestion } = require("./errorRecovery.cjs");
 const { formatApproval, formatTaskResult } = require("./responseFormatter.cjs");
 
-function createAgentRuntime({ stateStore, memoryManager, logger, taskState, approvals, executor, sendEvent }) {
+function createAgentRuntime({ stateStore, memoryManager, logger, taskState, approvals, executor, sendEvent, getSettings }) {
   async function run({ command, selectedFile, workspacePath }) {
     const taskContext = buildContext({ state: stateStore.readState(), memoryManager, selectedFile, workspacePath });
     const classification = classifyIntent(command);
 
     if (classification.intent === "chat_only" || classification.intent === "planning" || classification.intent === "research") {
       try {
-        const settings = stateStore.readState().settings;
+        const settings = getSettings ? getSettings() : stateStore.readState().settings;
         const useOrchestrator = settings.aiProvider === "openai" && settings.orchestratedAI !== false;
         const result = useOrchestrator
           ? await runSubagent({
