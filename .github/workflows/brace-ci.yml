@@ -24,3 +24,25 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+
+  package-linux:
+    if: github.event_name == 'pull_request'
+    needs: verify
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: brace-interface
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: brace-interface/package-lock.json
+      - run: npm ci
+      - run: npm run dist:linux
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BRACE-Linux-AppImage
+          path: brace-interface/release/*.AppImage
+          if-no-files-found: error
