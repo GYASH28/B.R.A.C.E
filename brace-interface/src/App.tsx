@@ -39,6 +39,7 @@ import {
 import { navItems } from "./data/appData";
 import { searchBrain } from "./lib/brain";
 import { VoiceControls } from "./voice/VoiceControls";
+import { AgentConstellation } from "./components/AgentConstellation";
 import { VoiceOrb } from "./voice/VoiceOrb";
 import { VoiceSettings } from "./voice/VoiceSettings";
 import { useVoiceAgent } from "./voice/useVoiceAgent";
@@ -821,7 +822,8 @@ function HomePage({
   ];
 
   return (
-    <div className="home-orb-shell mx-auto flex min-h-[calc(100vh-7rem)] max-w-6xl flex-col items-center justify-center gap-7 px-2 text-center">
+    <div className="home-orb-shell relative mx-auto flex min-h-[calc(100vh-7rem)] max-w-6xl flex-col items-center justify-center gap-7 px-2 text-center">
+      <AgentConstellation liveConnected={voiceAgent.liveConnected} />
       <div className="flex flex-wrap items-center justify-center gap-2">
         <StatusBadge label={desktopReady ? "Desktop bridge online" : "Browser mode limited"} tone={desktopReady ? "green" : "warn"} />
         <StatusBadge label={voiceReady} tone={voiceAgent.status?.fallbackActive ? "warn" : "cyan"} />
