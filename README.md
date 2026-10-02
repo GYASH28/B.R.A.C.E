@@ -4,207 +4,218 @@
 
 ### Brain · Responsive · Agentic · Companion · Engine
 
-**A local-first, voice-first AI operating layer with GPT-Live conversation, routed subagents, skills, and permission-controlled desktop actions.**
-
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=111827)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Electron](https://img.shields.io/badge/Electron-Desktop-47848F?style=for-the-badge&logo=electron&logoColor=white)](https://www.electronjs.org)
-[![Local First](https://img.shields.io/badge/Architecture-Local--First-22C55E?style=for-the-badge)](#architecture)
+**A local-first, Codex-native desktop AI presence for Kubuntu.**
 
 </div>
 
-## Overview
+## What this branch is
 
-**B.R.A.C.E** is an experimental personal AI operating layer built around a simple idea: an assistant should be able to understand your projects, knowledge, files, and workflows without silently taking control of your computer.
+The Codex-native B.R.A.C.E rebuild replaces the old dashboard-first experience with a minimal full-screen assistant:
 
-The project combines a structured Obsidian-compatible knowledge vault with a React and Electron interface, modular AI providers, local memory, voice interaction, project awareness, and explicit permission gates for sensitive actions.
+- a reactive orb in the center
+- a single composer at the bottom
+- transient conversation text
+- agent nodes that appear only when Codex actually delegates work
+- compact approval cards for command/file actions
+- local Second Brain retrieval
+- local speech-to-text and text-to-speech
 
-> **Status:** Active personal R&D project. The repository contains both the knowledge-workspace structure and the desktop assistant interface.
-
-## Core Capabilities
-
-- GPT-Live-1 full-duplex voice conversation over WebRTC
-- Luna-High default reasoning with Terra/Sol escalation through 17 specialist agents
-- Agent Skills-style `SKILL.md` discovery from local skill repositories
-- Conversational AI with configurable cloud and local providers
-- Local, user-visible memory and notes
-- Obsidian-compatible knowledge vault and dashboards
-- Voice input, speaking states, interruption, and TTS provider detection
-- Project scanning, package-script awareness, and Git status inspection
-- Permission-controlled file, terminal, browser, app, and coding tools
-- Safe Electron IPC between the desktop interface and modular backend
-- PDF and document parsing for local knowledge workflows
-- Windows portable packaging and Linux AppImage packaging
-- Loopback localhost production server and KDE/Kubuntu autostart
-- System-information and local-environment awareness
-
-## Safety Model
-
-B.R.A.C.E is designed around **explicit access instead of invisible authority**.
-
-Sensitive capabilities are individually controlled:
-
-- AI provider access
-- Local file read and write
-- Folder organization
-- Terminal commands
-- Application launching
-- Browser automation
-- Coding-agent edits
-- Memory read and write
-- System information
-- Git and MCP tools
-
-Command execution and code edits should require user approval. Secrets are expected to come from local environment configuration and must never be committed to Git.
+The normal intelligence path uses the locally installed **Codex CLI / app-server** and your existing Codex ChatGPT sign-in. The fresh interface does **not** require an OpenAI API key.
 
 ## Architecture
 
-| Layer | Responsibility |
-|---|---|
-| Knowledge vault | Structured notes, dashboards, projects, studies, journals, templates, and automation data |
-| React interface | Chat, projects, access controls, settings, voice states, memory views, and system UI |
-| Electron shell | Cross-platform desktop runtime, localhost production server, and safe IPC bridge |
-| Modular backend | Agent runtime, provider routing, memory, security, documents, voice, and tools |
-| AI providers | GPT-Live-1 for voice; GPT-5.6 Luna/Terra/Sol through Responses; Ollama, Gemini, OpenAI-compatible APIs, LM Studio, and custom endpoints |
-| Local data | User-visible notes, memory, settings, and logs |
-
-## Technology Stack
-
-| Area | Technology |
-|---|---|
-| Interface | React 19, TypeScript, Vite, Tailwind CSS 4 |
-| Motion and icons | Framer Motion, Lucide React |
-| Desktop | Electron, electron-builder |
-| Backend | Node.js modular CommonJS services |
-| Documents | mammoth, pdf-parse |
-| System integration | systeminformation |
-| Testing | Node test runner, Playwright |
-| Knowledge workspace | Markdown and Obsidian-compatible vault structure |
-
-## Repository Structure
-
 ```text
-.
-├── 00_HOME/                 # Master dashboards and navigation
-├── 01_PROJECTS/             # Project knowledge and execution notes
-├── 05_STUDIES/              # Academic knowledge base
-├── 10_AUTOMATION_SYSTEM/    # Automation scripts, state, and logs
-├── _TEMPLATES/              # Reusable note templates
-├── .obsidian/               # Vault configuration
-└── brace-interface/         # React, Electron, and backend application
+B.R.A.C.E Electron shell
+        │
+        ├── React orb-first UI
+        │
+        ├── Local voice
+        │     ├── Faster-Whisper (CPU INT8)
+        │     └── Kokoro 82M
+        │
+        ├── Second Brain
+        │     └── local Markdown / Obsidian retrieval
+        │
+        └── CodexService
+              └── codex app-server --listen stdio://
+                    ├── ChatGPT-authenticated Codex
+                    ├── streamed turns
+                    ├── shell / file operations
+                    ├── approvals
+                    └── real collaboration/sub-agent events
 ```
 
-## Run the Interface
+The renderer never receives Codex auth tokens and cannot spawn arbitrary processes directly.
 
-### Kubuntu / Linux Jarvis setup
+## Kubuntu setup
+
+Requirements:
+
+- Node.js 22.6+
+- Python 3
+- Codex CLI
+- a Codex/ChatGPT account that is already signed in through the CLI
+
+If Codex is not installed:
 
 ```bash
+npm install -g @openai/codex@latest
+codex login
+```
+
+Then:
+
+```bash
+git checkout feature/codex-native-brace
 cd brace-interface
-chmod +x scripts/setup-jarvis.sh
+chmod +x scripts/setup-jarvis.sh scripts/setup-local-voice.sh
 ./scripts/setup-jarvis.sh
 npm run launch
 ```
 
-Use `./scripts/setup-jarvis.sh --skills` if you also want the optional pinned Codex skill library. The setup script installs KDE autostart so BRACE opens from its local `127.0.0.1` server on login.
+Optional local skill library:
 
-Then save an OpenAI API key in **Settings**, enable **Microphone** and **AI model** permissions, and keep **GPT-Live-1 / Online High Quality** enabled.
+```bash
+./scripts/setup-jarvis.sh --skills
+```
 
-### Manual dependency install
+Skip voice installation if you only want typed Codex use:
+
+```bash
+./scripts/setup-jarvis.sh --no-voice
+```
+
+The setup script:
+
+1. verifies Node and Codex
+2. verifies `codex login status`
+3. installs Node dependencies
+4. creates an isolated local voice venv
+5. installs Faster-Whisper, Kokoro, eSpeak NG, and required Python packages
+6. runs tests
+7. builds the production interface
+8. installs KDE autostart
+
+No OpenAI API key setup is part of the Codex-native interface.
+
+## Interface
+
+The primary UI deliberately has no permanent sidebar or dashboard.
+
+Orb states include:
+
+- idle
+- listening
+- transcribing
+- thinking
+- planning
+- delegating
+- working
+- speaking
+- awaiting approval
+- success
+- error
+- offline
+
+The orb is Canvas-based and reduces its frame rate while idle/hidden.
+
+## Codex runtime
+
+B.R.A.C.E keeps one local `codex app-server` process alive instead of spawning a new CLI process for every message.
+
+The runtime supports:
+
+- `initialize`
+- account status
+- model catalog discovery
+- `thread/start`
+- `turn/start`
+- streamed `item/agentMessage/delta`
+- `turn/interrupt`
+- command/file approvals
+- crash recovery
+- real Codex collaboration events for transient agent nodes
+
+FAST / NORMAL / DEEP routing is decided locally first. Model selection is made only from the catalog exposed by the installed Codex runtime.
+
+## Second Brain
+
+Use **Ctrl+K → Second Brain** to connect your local Obsidian/Markdown folder.
+
+B.R.A.C.E:
+
+- keeps the vault local
+- retrieves only relevant text notes
+- caps injected context
+- redacts common secrets before context is sent to Codex
+- labels retrieved material as reference data, not instructions
+
+The whole vault is never blindly inserted into a prompt.
+
+## Local voice
+
+The default voice pipeline is:
+
+```text
+microphone
+   ↓
+MediaRecorder
+   ↓
+Faster-Whisper (local CPU INT8)
+   ↓
+Codex
+   ↓
+sentence streaming
+   ↓
+Kokoro 82M (local)
+   ↓
+Web Audio
+   ↓
+speakers
+```
+
+The default TTS voice is `bm_george`.
+
+As Codex streams text, complete sentences are queued to Kokoro so speech can begin before the full answer is finished.
+
+Clicking the orb/mic while audio is playing stops playback and returns to listening.
+
+## Fullscreen
+
+B.R.A.C.E launches fullscreen on Kubuntu.
+
+- **Esc** exits fullscreen
+- **F11** toggles fullscreen
+- **Ctrl+K** opens the minimal command palette
+- **Ctrl+Alt+Space** starts/stops voice
+
+## Build and test
 
 ```bash
 cd brace-interface
-npm install
-```
-
-Create local configuration from the example file when required:
-
-```powershell
-copy .env.example .env
-```
-
-### Frontend Development
-
-```bash
-npm run dev -- --host 127.0.0.1 --port 5173
-```
-
-### Desktop Mode
-
-```bash
-npm run desktop
-```
-
-### Production Build
-
-```bash
+npm test
 npm run build
-```
-
-### Windows Portable Build
-
-```bash
-npm run dist:win
-```
-
-### Linux AppImage Build
-
-```bash
 npm run dist:linux
 ```
 
-### Tests
+The Linux package includes the Python voice worker outside ASAR so it remains executable from the AppImage.
 
-```bash
-npm test
-```
+## Current migration note
 
-## Voice System
+Some legacy provider/GPT-Live source files remain in the repository for history and comparison, but the Codex-native renderer bridge no longer exposes the old direct-cloud chat, GPT-Live, or API-key-saving paths.
 
-GPT-Live-1 is the primary voice layer. It supports full-duplex conversation, natural interruption, and client delegation to BRACE's backend agent runtime. The live session automatically closes after 90 seconds of inactivity so the UI can remain always available without paying for silent voice-session time.
+The active rebuild is tracked on the draft pull request for `feature/codex-native-brace`.
 
-The interface includes:
+## Safety
 
-- Idle, listening, thinking/delegating, speaking, muted, offline, and error states
-- Reactive Canvas particle orb with low GPU overhead
-- Microphone-level feedback and interruption
-- GPT-Live client delegation into permission-gated local actions
-- Local/browser voice fallback when Live is unavailable
+- Codex auth stays owned by Codex.
+- The renderer has context isolation and no Node integration.
+- Codex uses explicit sandbox/approval policies.
+- Commands and file writes can require approval.
+- The Second Brain remains local.
+- Raw microphone recordings are temporary and removed after local transcription.
+- The normal Codex-native interface does not store an OpenAI API key.
 
-## Memory
+## Status
 
-B.R.A.C.E keeps memory and notes local and visible to the user. The exact storage path depends on the local configuration, but memory is designed to remain inspectable rather than hidden inside an opaque remote service.
-
-Secrets are stored separately from normal app state. Electron `safeStorage` is used when the OS keychain is available, with a restricted local-file fallback.
-
-## Documentation
-
-Detailed interface setup, provider configuration, voice architecture, and troubleshooting documentation is available inside:
-
-```text
-brace-interface/docs/
-```
-
-The interface-specific README is available at:
-
-```text
-brace-interface/README.md
-```
-
-## Security
-
-Before running agentic features:
-
-1. Use fresh API keys stored only in `.env` or an approved local secret store
-2. Review every enabled permission
-3. Keep terminal and file access limited to selected folders
-4. Test provider connections from Settings
-5. Review commands and edits before approval
-6. Never commit `.env`, credentials, private vault content, build artifacts, or user data
-
-## Vision
-
-B.R.A.C.E is being developed as a personal companion that can connect knowledge, projects, voice, coding, and computer workflows while keeping the user in control of every meaningful action.
-
-## License
-
-This is a personal research and product-development project. All rights reserved unless a separate license is added.
+This branch is still under active verification. Do not merge it into `main` until local Kubuntu smoke tests, real Codex execution, voice, and Second Brain retrieval are confirmed on the target machine.
