@@ -16,6 +16,7 @@ const { createNoteManager } = require("./notes/noteManager.cjs");
 const { scanProject } = require("./projects/projectManager.cjs");
 const { createPathGuard } = require("./security/pathGuard.cjs");
 const { requirePermission, touchPermission } = require("./security/permissionManager.cjs");
+const { createSecretStore } = require("./security/secretStore.cjs");
 const { createToolRegistry } = require("./tools/toolRegistry.cjs");
 const { createToolRouter } = require("./tools/toolRouter.cjs");
 const fileTools = require("./tools/fileTools.cjs");
@@ -28,22 +29,24 @@ function cryptoId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function publicState(state) {
+function publicState(state, secretStore) {
   return {
     ...state,
     settings: {
       ...state.settings,
-      apiKey: state.settings.apiKey ? "__saved__" : "",
-      geminiKey: state.settings.geminiKey ? "__saved__" : "",
-      openAiApiKey: state.settings.openAiApiKey ? "__saved__" : "",
+      apiKey: secretStore.has("apiKey") ? "__saved__" : "",
+      geminiKey: secretStore.has("geminiKey") ? "__saved__" : "",
+      openAiApiKey: secretStore.has("openAiApiKey") ? "__saved__" : "",
+      secretStorageMode: secretStore.securityMode(),
     },
   };
 }
 
-function createBackend({ app, dialog, shell, mainWindow }) {
+function createBackend({ app, dialog, safeStorage, shell, mainWindow }) {
   const userDataPath = app.getPath("userData");
   const vaultDataDir = path.join(VAULT_PATH, DATA_DIR_NAME);
   const stateStore = createStateStore({ userDataPath });
+  const secretStore = createSecretStore({ userDataPath, safeStorage });
   const logger = createActivityLogger({ stateStore });
   const memoryManager = createMemoryManager({ memoryDir: path.join(vaultDataDir, "memory") });
   const noteManager = createNoteManager({ notesDir: path.join(vaultDataDir, "notes") });
@@ -57,11 +60,30 @@ function createBackend({ app, dialog, shell, mainWindow }) {
   const approvals = createApprovalManager({ stateStore });
   const executor = createExecutor({ toolRouter, stateStore, memoryManager, logger, pathGuard });
   const sendEvent = (channel, payload) => mainWindow()?.webContents?.send(channel, payload);
-  const agentRuntime = createAgentRuntime({ stateStore, memoryManager, logger, taskState, approvals, executor, sendEvent });
+
+  function getSettings() {
+    const settings = { ...stateStore.readState().settings };
+    for (const key of ["apiKey", "geminiKey", "openAiApiKey"]) settings[key] = secretStore.get(key);
+    return settings;
+  }
+
+  const agentRuntime = createAgentRuntime({ stateStore, memoryManager, logger, taskState, approvals, executor, sendEvent, getSettings });
 
   function ensureState() {
-    const state = stateStore.readState();
+    let state = stateStore.readState();
     if (!state.version) stateStore.writeState({ ...defaultState(), ...state, version: 2 });
+    state = stateStore.readState();
+
+    let migrated = false;
+    for (const key of ["apiKey", "geminiKey", "openAiApiKey"]) {
+      const legacy = String(state.settings?.[key] || "").trim();
+      if (legacy && legacy !== "__saved__" && !secretStore.has(key)) {
+        secretStore.set(key, legacy);
+        state.settings[key] = "";
+        migrated = true;
+      }
+    }
+    if (migrated) stateStore.writeState(state);
     return stateStore.readState();
   }
 
@@ -163,7 +185,7 @@ function createBackend({ app, dialog, shell, mainWindow }) {
     toolRouter,
     ensureState,
     handlers: {
-      state: () => publicState(ensureState()),
+      state: () => publicState(ensureState(), secretStore),
       updateSettings: (patch) => {
         stateStore.updateState((state) => {
           state.settings = { ...state.settings, ...patch };
@@ -174,12 +196,13 @@ function createBackend({ app, dialog, shell, mainWindow }) {
       },
       saveSecret: ({ key, value }) => {
         if (!["apiKey", "geminiKey", "openAiApiKey"].includes(key)) throw new Error("Unsupported secret key.");
+        const result = secretStore.set(key, value);
         stateStore.updateState((state) => {
-          state.settings[key] = String(value || "").trim();
+          state.settings[key] = "";
           return state;
         });
-        logger.log("settings", `${key} saved locally`);
-        return { ok: true };
+        logger.log("settings", `${key} saved in protected local storage`, { mode: secretStore.securityMode() });
+        return { ok: true, encrypted: result.encrypted, mode: secretStore.securityMode() };
       },
       updatePermission,
       logsList: () => logger.list(),
@@ -202,7 +225,7 @@ function createBackend({ app, dialog, shell, mainWindow }) {
       },
       askAi: async ({ prompt }) => {
         try {
-          const result = await callProvider(stateStore.readState().settings, prompt, {});
+          const result = await callProvider(getSettings(), prompt, {});
           logger.log("ai", `AI request completed using ${result.provider}`);
           return { ok: true, text: result.text, provider: result.provider };
         } catch (error) {
@@ -210,12 +233,12 @@ function createBackend({ app, dialog, shell, mainWindow }) {
           return { ok: false, error: error.message };
         }
       },
-      aiTest: async () => testConnection(stateStore.readState().settings),
+      aiTest: async () => testConnection(getSettings()),
       agentsCatalog: () => publicAgentCatalog(),
       skillsList: () => publicSkills(),
       liveCreateSession: async (payload) => {
         try {
-          const result = await createLiveSession(stateStore.readState().settings, payload);
+          const result = await createLiveSession(getSettings(), payload);
           logger.log("voice", "GPT-Live WebRTC session created", { sessionId: result?.session?.id || "" });
           return result;
         } catch (error) {
@@ -297,7 +320,8 @@ function createBackend({ app, dialog, shell, mainWindow }) {
       },
       clearAllData: () => {
         stateStore.writeState(defaultState());
-        logger.log("privacy", "Local app data reset");
+        secretStore.clearAll();
+        logger.log("privacy", "Local app data and protected secrets reset");
         return { ok: true };
       },
       agentRun: (payload) => agentRuntime.run(payload),
