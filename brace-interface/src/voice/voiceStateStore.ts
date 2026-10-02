@@ -1,7 +1,7 @@
 import type { VoiceConfig, VoiceOrbState } from "../types";
 
 export const defaultVoiceConfig: VoiceConfig = {
-  mode: "best-local",
+  mode: "online-high-quality",
   sttProvider: "faster-whisper",
   ttsProvider: "kokoro",
   vadProvider: "silero",
@@ -18,7 +18,7 @@ export const defaultVoiceConfig: VoiceConfig = {
   interruptionEnabled: true,
   wakeWordEnabled: false,
   continuousListening: false,
-  onlineVoiceEnabled: false,
+  onlineVoiceEnabled: true,
   saveRawAudio: false,
   saveTranscripts: false,
 };
