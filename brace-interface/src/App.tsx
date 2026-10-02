@@ -313,9 +313,19 @@ export default function App() {
       command: trimmed,
       selectedFile: selectedFile?.source === "dialog" ? selectedFile : null,
       workspacePath: projects[0]?.path,
-    })) as { ok: boolean; text?: string; error?: string; provider?: string; mode?: string };
+    })) as {
+      ok: boolean;
+      text?: string;
+      error?: string;
+      provider?: string;
+      mode?: string;
+      sources?: Array<{ title?: string; url: string }>;
+    };
     if (!result?.ok && !result?.text) throw new Error(result?.error ?? "Agent runtime failed.");
-    const finalText = `${result.text ?? "Agent task updated."}\n\nRoute: local brain checked first -> B.R.A.C.E agent${result.provider ? ` -> ${result.provider}` : ""}.`;
+    const sourceText = result.sources?.length
+      ? `\n\nSources:\n${result.sources.slice(0, 6).map((source) => `- ${source.title || source.url}: ${source.url}`).join("\n")}`
+      : "";
+    const finalText = `${result.text ?? "Agent task updated."}${sourceText}\n\nRoute: local brain checked first -> B.R.A.C.E agent${result.provider ? ` -> ${result.provider}` : ""}.`;
     setMessages((current) => current.map((message) => (message.id === pendingId ? { ...message, source: "agent", confidence: 76, text: finalText } : message)));
     await refreshAgentState();
     await refreshLogs();
