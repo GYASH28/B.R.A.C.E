@@ -1,6 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { createAgentRuntime } = require("./agent/agentRuntime.cjs");
+const { createAgentRuntime } = require("./agent/agentRuntime.cjs");\nconst { publicAgentCatalog } = require("./agents/catalog.cjs");\nconst { createLiveSession, runLiveDelegation } = require("./live/liveSession.cjs");
 const { createApprovalManager } = require("./agent/approvalManager.cjs");
 const { createExecutor } = require("./agent/executor.cjs");
 const { createTaskStateManager } = require("./agent/taskStateManager.cjs");
@@ -208,6 +208,27 @@ function createBackend({ app, dialog, shell, mainWindow }) {
         }
       },
       aiTest: async () => testConnection(stateStore.readState().settings),
+      agentsCatalog: () => publicAgentCatalog(),
+      liveCreateSession: async (payload) => {
+        try {
+          const result = await createLiveSession(stateStore.readState().settings, payload);
+          logger.log("voice", "GPT-Live WebRTC session created", { sessionId: result?.session?.id || "" });
+          return result;
+        } catch (error) {
+          logger.log("error", `GPT-Live session failed: ${error.message}`, {}, "medium", "error");
+          throw error;
+        }
+      },
+      liveDelegate: async (payload) => {
+        try {
+          const result = await runLiveDelegation(stateStore.readState().settings, payload);
+          logger.log("agent", `Live delegation completed via ${result.agentName}`, { model: result.model, effort: result.effort, tier: result.tier });
+          return { ok: true, ...result };
+        } catch (error) {
+          logger.log("error", `Live delegation failed: ${error.message}`, {}, "medium", "error");
+          return { ok: false, error: error.message };
+        }
+      },
       systemInfo: async () => {
         const state = stateStore.readState();
         requirePermission(state, "systemInfo");
