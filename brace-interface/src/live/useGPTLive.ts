@@ -39,6 +39,7 @@ export function useGPTLive({ history = [], workspacePath = "", idleTimeoutMs = 9
   const animationRef = useRef<number | null>(null);
   const inputRef = useRef("");
   const outputRef = useRef("");
+  const inputFragmentsRef = useRef<Array<{ delta: string; startMs: number; endMs: number }>>([]);
   const speakingTimerRef = useRef<number | null>(null);
   const closedByUserRef = useRef(false);
   const idleTimerRef = useRef<number | null>(null);
@@ -138,7 +139,14 @@ export function useGPTLive({ history = [], workspacePath = "", idleTimeoutMs = 9
     pendingDelegationsRef.current += 1;
     touchActivity();
 
-    const task = inputRef.current.trim().slice(-2800);
+    const offsetMs = Number(event?.offset_ms || 0);
+    const windowStart = Math.max(0, offsetMs - 20000);
+    const timedTask = inputFragmentsRef.current
+      .filter((fragment) => fragment.endMs <= offsetMs + 500 && fragment.endMs >= windowStart)
+      .map((fragment) => fragment.delta)
+      .join("")
+      .trim();
+    const task = (timedTask || inputRef.current.trim()).slice(-2800);
     if (!task) {
       send({
         type: "session.commentary.append",
@@ -201,6 +209,12 @@ export function useGPTLive({ history = [], workspacePath = "", idleTimeoutMs = 9
       }
       if (event.type === "session.input_transcript.delta" && event.delta) {
         inputRef.current += event.delta;
+        inputFragmentsRef.current.push({
+          delta: String(event.delta),
+          startMs: Number(event.start_ms || 0),
+          endMs: Number(event.end_ms || event.start_ms || 0),
+        });
+        if (inputFragmentsRef.current.length > 500) inputFragmentsRef.current.splice(0, inputFragmentsRef.current.length - 500);
         setInputTranscript(inputRef.current);
         setOrbState("listening");
         touchActivity();
@@ -248,6 +262,7 @@ export function useGPTLive({ history = [], workspacePath = "", idleTimeoutMs = 9
     setOrbState("thinking");
     inputRef.current = "";
     outputRef.current = "";
+    inputFragmentsRef.current = [];
     setInputTranscript("");
     setOutputTranscript("");
 
