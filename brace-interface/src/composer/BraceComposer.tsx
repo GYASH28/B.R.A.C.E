@@ -1,5 +1,5 @@
 import { ArrowUp, Mic, Paperclip, Square } from "lucide-react";
-import { KeyboardEvent, useRef } from "react";
+import { useRef, type KeyboardEvent } from "react";
 
 type Props = {
   value: string;
