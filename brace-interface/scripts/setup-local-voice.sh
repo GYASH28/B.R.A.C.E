@@ -12,7 +12,12 @@ fi
 
 need_apt=()
 command -v espeak-ng >/dev/null 2>&1 || need_apt+=(espeak-ng)
-"$PYTHON_BIN" -m venv --help >/dev/null 2>&1 || need_apt+=(python3-venv)
+
+if command -v dpkg-query >/dev/null 2>&1; then
+  dpkg-query -W -f='${Status}' python3-venv 2>/dev/null | grep -q "install ok installed" || need_apt+=(python3-venv)
+elif ! "$PYTHON_BIN" -c 'import ensurepip' >/dev/null 2>&1; then
+  need_apt+=(python3-venv)
+fi
 
 if (("${#need_apt[@]}" > 0)); then
   echo "Installing local voice system dependencies: ${need_apt[*]}"
@@ -36,7 +41,12 @@ echo "Updating pip..."
 "$VENV/bin/python" -m pip install --upgrade pip wheel setuptools
 
 echo "Installing Faster-Whisper + Kokoro local voice..."
-"$VENV/bin/python" -m pip install   "faster-whisper>=1.2.0"   "kokoro>=0.9.4"   "soundfile>=0.12.1"   "numpy>=1.26"   "misaki[en]"
+"$VENV/bin/python" -m pip install \
+  "faster-whisper>=1.2.0" \
+  "kokoro>=0.9.4" \
+  "soundfile>=0.12.1" \
+  "numpy>=1.26" \
+  "misaki[en]"
 
 echo
 echo "Local voice environment ready:"
