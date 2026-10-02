@@ -511,3 +511,14 @@ select:focus-visible {
     animation: none;
   }
 }
+
+
+.agent-constellation {
+  position: fixed;
+  right: 2rem;
+  top: 50%;
+  z-index: 18;
+  width: 250px;
+  transform: translateY(-43%);
+  text-align: left;
+}
