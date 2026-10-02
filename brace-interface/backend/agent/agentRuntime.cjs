@@ -36,6 +36,7 @@ function createAgentRuntime({ stateStore, memoryManager, logger, taskState, appr
           model: result.model,
           agent: result.agent,
           effort: result.effort,
+          sources: result.sources || [],
           classification,
         };
       } catch (error) {
