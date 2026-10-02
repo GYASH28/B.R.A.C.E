@@ -39,6 +39,7 @@ import {
 import { navItems } from "./data/appData";
 import { searchBrain } from "./lib/brain";
 import { VoiceControls } from "./voice/VoiceControls";
+import { AgentConstellation } from "./components/AgentConstellation";
 import { VoiceOrb } from "./voice/VoiceOrb";
 import { VoiceSettings } from "./voice/VoiceSettings";
 import { useVoiceAgent } from "./voice/useVoiceAgent";
@@ -77,22 +78,24 @@ type ToastState = { kind: "success" | "error" | "info"; text: string } | null;
 type DragFile = FileEntry & { text?: string; source: "drop" | "dialog" };
 
 const defaultSettings: SettingsState = {
-  aiProvider: "gemini",
-  model: "llama3.2",
+  aiProvider: "openai",
+  model: "gpt-5.6-luna",
   apiKey: "",
-  baseUrl: "http://127.0.0.1:11434",
+  baseUrl: "https://api.openai.com/v1",
   temperature: 0.35,
-  maxTokens: 1200,
+  maxTokens: 1800,
   streaming: false,
   localMode: true,
   geminiKey: "",
-  openAiBaseUrl: "http://127.0.0.1:1234/v1",
+  openAiBaseUrl: "https://api.openai.com/v1",
   openAiApiKey: "",
-  openAiModel: "local-model",
+  openAiModel: "gpt-5.6-luna",
   ollamaEndpoint: "http://127.0.0.1:11434",
   ollamaModel: "llama3.2",
   customEndpoint: "http://127.0.0.1:8000/chat",
   offlineMode: false,
+  orchestratedAI: true,
+  liveVoice: "vesper",
   safeMode: true,
   voiceRate: 1,
   voicePitch: 1,
@@ -200,6 +203,12 @@ export default function App() {
   const [loaded, setLoaded] = useState(false);
 
   const hasGeminiKey = settings.geminiKey === "__saved__";
+  const hasOpenAIKey = settings.openAiApiKey === "__saved__";
+  const hasProviderKey = settings.aiProvider === "openai"
+    ? hasOpenAIKey
+    : settings.aiProvider === "gemini"
+      ? hasGeminiKey
+      : true;
   const selectedFile = files.find((file) => file.id === selectedFileId) ?? files[0];
 
   const showToast = (kind: NonNullable<ToastState>["kind"], text: string) => {
@@ -304,16 +313,36 @@ export default function App() {
       command: trimmed,
       selectedFile: selectedFile?.source === "dialog" ? selectedFile : null,
       workspacePath: projects[0]?.path,
-    })) as { ok: boolean; text?: string; error?: string; provider?: string; mode?: string };
+    })) as {
+      ok: boolean;
+      text?: string;
+      error?: string;
+      provider?: string;
+      mode?: string;
+      sources?: Array<{ title?: string; url: string }>;
+      estimatedCostUsd?: number | null;
+    };
     if (!result?.ok && !result?.text) throw new Error(result?.error ?? "Agent runtime failed.");
-    const finalText = `${result.text ?? "Agent task updated."}\n\nRoute: local brain checked first -> B.R.A.C.E agent${result.provider ? ` -> ${result.provider}` : ""}.`;
+    const sourceText = result.sources?.length
+      ? `\n\nSources:\n${result.sources.slice(0, 6).map((source) => `- ${source.title || source.url}: ${source.url}`).join("\n")}`
+      : "";
+    const costText = typeof result.estimatedCostUsd === "number"
+      ? ` · backend text cost ~${result.estimatedCostUsd.toFixed(4)}`
+      : "";
+    const finalText = `${result.text ?? "Agent task updated."}${sourceText}\n\nRoute: local brain checked first -> B.R.A.C.E agent${result.provider ? ` -> ${result.provider}` : ""}${costText}.`;
     setMessages((current) => current.map((message) => (message.id === pendingId ? { ...message, source: "agent", confidence: 76, text: finalText } : message)));
     await refreshAgentState();
     await refreshLogs();
     return finalText;
   }, [projects, selectedFile, settings.offlineMode]);
 
-  const voiceAgent = useVoiceAgent({ addMessage: addVoiceMessage, sendCommand: runAgentCommand });
+  const voiceAgent = useVoiceAgent({
+    addMessage: addVoiceMessage,
+    sendCommand: runAgentCommand,
+    history: messages,
+    workspacePath: projects[0]?.path,
+    autoStart: loaded && permissions.microphone?.enabled === true && settings.openAiApiKey === "__saved__",
+  });
 
   useEffect(() => {
     const timer = window.setInterval(() => setTime(formatTime()), 1000);
@@ -718,7 +747,7 @@ export default function App() {
             onSend={() => void sendMessage()}
             onStopVoice={voiceAgent.stopAllAudio}
             onVoice={() => void voiceAgent.startListening()}
-            provider={settings.offlineMode ? "offline" : settings.aiProvider}
+            provider={settings.offlineMode ? "offline" : settings.aiProvider === "openai" ? "Luna · High" : settings.aiProvider}
             safeMode={settings.safeMode}
             voiceAgent={voiceAgent}
           />
@@ -741,7 +770,7 @@ export default function App() {
           onToggle={() => setSidebarCollapsed((value) => !value)}
         />
         <section className="flex min-w-0 flex-1 flex-col">
-          <TopBar hasGeminiKey={hasGeminiKey || settings.aiProvider !== "gemini"} micActive={voiceAgent.listening} systemInfo={systemInfo} time={time} />
+          <TopBar hasGeminiKey={hasProviderKey} micActive={voiceAgent.listening} systemInfo={systemInfo} time={time} />
           <PageShell pageKey={activePage}>{renderPage()}</PageShell>
         </section>
       </div>
@@ -801,8 +830,15 @@ function HomePage({
   safeMode: boolean;
   voiceAgent: ReturnType<typeof useVoiceAgent>;
 }) {
-  const voiceReady = voiceAgent.status?.fallbackActive ? "Browser fallback active" : `${voiceAgent.status?.ttsProvider ?? "Voice"} active`;
+  const voiceReady = voiceAgent.isLiveMode
+    ? voiceAgent.liveConnected
+      ? "GPT-Live-1 · full duplex connected"
+      : "GPT-Live-1 · ready"
+    : voiceAgent.status?.fallbackActive
+      ? "Browser fallback active"
+      : `${voiceAgent.status?.ttsProvider ?? "Local voice"} active`;
   const statusText = voiceAgent.error || voiceStateLabel[voiceAgent.orbState] || voiceReady;
+  const liveVoiceCostUsd = (voiceAgent.liveUsageSeconds / 60) * 0.05;
   const quickChips: { label: string; page?: PageId; run?: () => void }[] = [
     { label: "Open VS Code", page: "tasks" },
     { label: "Search Files", page: "files" },
@@ -813,10 +849,17 @@ function HomePage({
   ];
 
   return (
-    <div className="home-orb-shell mx-auto flex min-h-[calc(100vh-7rem)] max-w-6xl flex-col items-center justify-center gap-7 px-2 text-center">
+    <div className="home-orb-shell relative mx-auto flex min-h-[calc(100vh-7rem)] max-w-6xl flex-col items-center justify-center gap-7 px-2 text-center">
+      <AgentConstellation liveConnected={voiceAgent.liveConnected} />
       <div className="flex flex-wrap items-center justify-center gap-2">
         <StatusBadge label={desktopReady ? "Desktop bridge online" : "Browser mode limited"} tone={desktopReady ? "green" : "warn"} />
         <StatusBadge label={voiceReady} tone={voiceAgent.status?.fallbackActive ? "warn" : "cyan"} />
+        {voiceAgent.liveConnected && (
+          <StatusBadge
+            label={`Live ${Math.round(voiceAgent.liveUsageSeconds)}s · ${liveVoiceCostUsd.toFixed(3)}`}
+            tone="cyan"
+          />
+        )}
         <StatusBadge label={`AI: ${provider}`} tone={provider === "offline" ? "warn" : "purple"} />
         <StatusBadge label={safeMode ? "Safe Mode on" : "Safe Mode off"} tone={safeMode ? "green" : "warn"} />
       </div>
@@ -1149,13 +1192,66 @@ function SystemPage({
 }
 
 function AgentTasksPage({ approvals, onApprove, onReject, tasks }: { approvals: ApprovalRequest[]; onApprove: (approvalId: string) => Promise<void>; onReject: (approvalId: string) => Promise<void>; tasks: AgentTaskRecord[] }) {
+  const [specialists, setSpecialists] = useState<Array<{ id: string; name: string; icon: string; tier: string; description: string }>>([]);
+  const [linkedSkills, setLinkedSkills] = useState<Array<{ id: string; name: string; description: string }>>([]);
+
+  useEffect(() => {
+    let active = true;
+    void Promise.all([window.braceDesktop?.listAgents?.(), window.braceDesktop?.listSkills?.()]).then(([agents, skills]) => {
+      if (!active) return;
+      if (Array.isArray(agents)) setSpecialists(agents);
+      if (Array.isArray(skills)) setLinkedSkills(skills);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <GlassCard className="p-6">
-        <p className="text-xs uppercase tracking-[0.24em] text-cyan-200">Agent runtime</p>
-        <h1 className="mt-2 text-3xl font-semibold text-white">Plans, approvals, and results</h1>
-        <p className="mt-3 text-slate-400">Every agent task keeps its plan, risk level, approval state, outputs, and recovery hint.</p>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.24em] text-cyan-200">Agent runtime</p>
+            <h1 className="mt-2 text-3xl font-semibold text-white">B.R.A.C.E cognitive swarm</h1>
+            <p className="mt-3 max-w-3xl text-slate-400">Luna-High is the default brain. Specialist agents automatically escalate difficult work to Terra or Sol while protected PC actions still pass through approvals.</p>
+          </div>
+          <div className="flex gap-2">
+            <StatusBadge label={`${specialists.length || 17} agents`} tone="cyan" />
+            <StatusBadge label={`${linkedSkills.length} linked skills`} tone="purple" />
+          </div>
+        </div>
       </GlassCard>
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {specialists.map((agent) => (
+          <GlassCard className="group p-4" interactive key={agent.id}>
+            <div className="flex items-start gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-200/15 bg-cyan-300/[0.06] font-mono text-cyan-100">{agent.icon}</span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h2 className="truncate text-sm font-semibold text-white">{agent.name}</h2>
+                  <span className="rounded-full border border-white/10 px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em] text-slate-500">{agent.tier}</span>
+                </div>
+                <p className="mt-2 text-xs leading-5 text-slate-500">{agent.description}</p>
+              </div>
+            </div>
+          </GlassCard>
+        ))}
+      </div>
+
+      {linkedSkills.length > 0 && (
+        <GlassCard className="p-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="mr-2 text-xs uppercase tracking-[0.2em] text-slate-500">Skill mesh</span>
+            {linkedSkills.slice(0, 18).map((skill) => (
+              <span className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1 text-[11px] text-slate-400" key={skill.id}>{skill.name}</span>
+            ))}
+            {linkedSkills.length > 18 && <span className="text-xs text-slate-600">+{linkedSkills.length - 18} more</span>}
+          </div>
+        </GlassCard>
+      )}
+
       <div className="space-y-4">
         {approvals.map((approval) => (
           <ApprovalCard approval={approval} key={approval.id} onApprove={onApprove} onReject={onReject} />
@@ -1525,11 +1621,21 @@ function SettingsPage({
             <RangeField label="Temperature" value={settings.temperature ?? 0.35} min={0} max={1.5} step={0.05} onChange={(temperature) => void updateSettings({ temperature })} />
             <TextField label="Max tokens" value={String(settings.maxTokens ?? 1200)} onChange={(maxTokens) => void updateSettings({ maxTokens: Number(maxTokens) || 1200 })} />
             <ApiKeyField
-              apiKey={secretDrafts.geminiKey}
-              isSaved={settings.geminiKey === "__saved__"}
-              onChange={(geminiKey) => setSecretDrafts({ ...secretDrafts, geminiKey })}
-              onClear={() => void clearSecret("geminiKey")}
-              onSave={() => void saveSecret("geminiKey", secretDrafts.geminiKey)}
+              apiKey={settings.aiProvider === "openai" ? secretDrafts.openAiApiKey : secretDrafts.geminiKey}
+              helper={settings.aiProvider === "openai"
+                ? "Used by GPT-Live-1 and the Luna/Terra/Sol subagent router. The key stays in the Electron backend."
+                : "Used for Gemini requests when Gemini is selected as the provider."}
+              isSaved={settings.aiProvider === "openai" ? settings.openAiApiKey === "__saved__" : settings.geminiKey === "__saved__"}
+              label={settings.aiProvider === "openai" ? "OpenAI API key" : "Gemini API key"}
+              onChange={(value) => settings.aiProvider === "openai"
+                ? setSecretDrafts({ ...secretDrafts, openAiApiKey: value })
+                : setSecretDrafts({ ...secretDrafts, geminiKey: value })}
+              onClear={() => void clearSecret(settings.aiProvider === "openai" ? "openAiApiKey" : "geminiKey")}
+              onSave={() => void saveSecret(
+                settings.aiProvider === "openai" ? "openAiApiKey" : "geminiKey",
+                settings.aiProvider === "openai" ? secretDrafts.openAiApiKey : secretDrafts.geminiKey,
+              )}
+              placeholder={settings.aiProvider === "openai" ? "Paste OpenAI API key" : "Paste Google AI Studio key"}
               saveStatus={secretStatus}
             />
             <button className="secondary-button" onClick={async () => {

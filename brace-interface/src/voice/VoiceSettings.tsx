@@ -51,7 +51,7 @@ export function VoiceSettings({
         <section className="glass-panel rounded-2xl border border-white/10 p-6">
           <p className="text-xs uppercase tracking-[0.24em] text-cyan-200">Voice engine</p>
           <h1 className="mt-2 text-3xl font-semibold text-white">Voice settings</h1>
-          <p className="mt-3 text-slate-400">Local providers are used when installed. Browser Fallback stays available and clearly marked.</p>
+          <p className="mt-3 text-slate-400">GPT-Live-1 is the primary full-duplex voice engine. Local voice remains available as an offline fallback.</p>
         </section>
 
         <section className="grid gap-4 md:grid-cols-2">
@@ -59,10 +59,31 @@ export function VoiceSettings({
             <Select label="Mode" value={config.mode} onChange={(mode) => onUpdate({ mode: mode as VoiceConfig["mode"] })} options={[
               ["best-local", "Best Local Voice"],
               ["fast-local", "Fast Local"],
-              ["online-high-quality", "Online High Quality"],
+              ["online-high-quality", "GPT-Live-1 · Full Duplex"],
               ["browser-fallback", "Browser Fallback"],
             ]} />
-            <Select label="Voice" value={config.selectedVoice} onChange={(selectedVoice) => onUpdate({ selectedVoice })} options={voiceOptions.map((voice) => [voice.id, voice.label])} />
+            {config.mode === "online-high-quality" ? (
+              <Select
+                label="GPT-Live voice"
+                value={config.liveVoice ?? "vesper"}
+                onChange={(liveVoice) => onUpdate({ liveVoice })}
+                options={[
+                  ["vesper", "Vesper · British · Masculine"],
+                  ["meridian", "Meridian · North American · Masculine"],
+                  ["ripple", "Ripple · Australian · Masculine"],
+                  ["stone", "Stone · Irish · Masculine"],
+                  ["beacon", "Beacon · Filipino · Masculine"],
+                  ["cinder", "Cinder · Southern US · Masculine"],
+                  ["quartz", "Quartz · Australian · Feminine"],
+                  ["willow", "Willow · Irish · Feminine"],
+                  ["gleam", "Gleam · North American · Feminine"],
+                  ["delta", "Delta · Southern US · Feminine"],
+                  ["marin", "Marin · Default"],
+                ]}
+              />
+            ) : (
+              <Select label="Voice" value={config.selectedVoice} onChange={(selectedVoice) => onUpdate({ selectedVoice })} options={voiceOptions.map((voice) => [voice.id, voice.label])} />
+            )}
             <Select label="Style preset" value={config.stylePreset} onChange={(stylePreset) => onUpdate({ stylePreset })} options={localVoices.map((voice) => [voice.id, voice.label])} />
             <Select label="Language" value={config.language} onChange={(language) => onUpdate({ language })} options={[["en-IN", "English India"], ["en-US", "English US"], ["en-GB", "English UK"], ["hi-IN", "Hindi India"]]} />
           </Panel>
@@ -92,8 +113,8 @@ export function VoiceSettings({
           <Panel title="Safety controls">
             <Toggle checked={config.interruptionEnabled} label="Interruption / barge-in" onClick={() => onUpdate({ interruptionEnabled: !config.interruptionEnabled })} />
             <Toggle checked={config.continuousListening} label="Continuous listening" onClick={() => onUpdate({ continuousListening: !config.continuousListening })} />
-            <Toggle checked={config.wakeWordEnabled} label="Wake word placeholder" onClick={() => onUpdate({ wakeWordEnabled: !config.wakeWordEnabled })} />
-            <Toggle checked={config.onlineVoiceEnabled} label="Allow online voice mode" onClick={() => onUpdate({ onlineVoiceEnabled: !config.onlineVoiceEnabled })} />
+            <Toggle checked={config.wakeWordEnabled} label="Wake word (requires a local hotword engine)" onClick={() => onUpdate({ wakeWordEnabled: !config.wakeWordEnabled })} />
+            <Toggle checked={config.onlineVoiceEnabled} label="Enable GPT-Live-1" onClick={() => onUpdate({ onlineVoiceEnabled: !config.onlineVoiceEnabled })} />
             <Toggle checked={config.saveTranscripts} label="Save transcripts" onClick={() => onUpdate({ saveTranscripts: !config.saveTranscripts })} />
             <button className="secondary-button" onClick={() => onUpdate(defaultVoiceConfig)} type="button"><RotateCcw size={16} /> Reset voice</button>
           </Panel>

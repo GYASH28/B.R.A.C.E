@@ -192,7 +192,7 @@ export function TopBar({ time, micActive, hasGeminiKey, systemInfo }: TopBarProp
       <div className="flex min-w-0 items-center gap-3">
         <StatusBadge label="Online" tone="green" icon={<span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />} />
         <StatusBadge label="Running locally" tone="cyan" />
-        <StatusBadge label={hasGeminiKey ? "Gemini armed" : "Gemini key needed"} tone={hasGeminiKey ? "purple" : "warn"} />
+        <StatusBadge label={hasGeminiKey ? "AI key ready" : "AI key needed"} tone={hasGeminiKey ? "purple" : "warn"} />
       </div>
 
       <div className="hidden items-center gap-2 xl:flex">
@@ -414,33 +414,39 @@ export function Waveform({ active }: { active: boolean }) {
 
 export function ApiKeyField({
   apiKey,
+  helper = "Saved locally on this PC. Secrets are only used by the trusted B.R.A.C.E backend.",
   isSaved,
+  label = "AI API key",
   onChange,
   onClear,
   onSave,
+  placeholder = "Paste API key",
   saveStatus,
 }: {
   apiKey: string;
+  helper?: string;
   isSaved: boolean;
+  label?: string;
   onChange: (value: string) => void;
   onClear: () => void;
   onSave: () => void;
+  placeholder?: string;
   saveStatus: string;
 }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <label className="flex items-center gap-2 text-sm font-medium text-white" htmlFor="gemini-key">
+        <label className="flex items-center gap-2 text-sm font-medium text-white" htmlFor="primary-ai-key">
           <LockKeyhole size={16} />
-          Gemini API key
+          {label}
         </label>
         <StatusBadge label={isSaved ? "Saved" : "Not saved"} tone={isSaved ? "green" : "warn"} />
       </div>
       <input
         className="w-full rounded-xl border border-white/10 bg-white/[0.045] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300/40"
-        id="gemini-key"
+        id="primary-ai-key"
         onChange={(event) => onChange(event.target.value)}
-        placeholder="Paste your Google AI Studio Gemini API key"
+        placeholder={placeholder}
         type="password"
         value={apiKey}
       />
@@ -457,9 +463,7 @@ export function ApiKeyField({
       <p className={["mt-3 text-xs leading-5", isSaved ? "text-emerald-200" : "text-slate-500"].join(" ")}>
         {saveStatus}
       </p>
-      <p className="mt-3 text-xs leading-5 text-slate-500">
-        Saved locally on this PC. B.R.A.C.E checks the local brain first, then uses Gemini only when no strong brain match is found.
-      </p>
+      <p className="mt-3 text-xs leading-5 text-slate-500">{helper}</p>
     </div>
   );
 }

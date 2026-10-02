@@ -1,5 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
+const { spawn } = require("node:child_process");
 
 async function openVSCode({ folderPath, shell }) {
   const target = path.resolve(folderPath || process.cwd()).replaceAll("\\", "/");
@@ -19,10 +20,14 @@ async function openURL({ url, shell }) {
   return { ok: true, message: `Opened URL: ${url}` };
 }
 
-async function openSpecificApp({ appPath, shell }) {
+async function openSpecificApp({ appPath }) {
   if (!appPath || !fs.existsSync(appPath)) throw new Error("App path does not exist.");
-  const result = await shell.openPath(appPath);
-  if (result) throw new Error(result);
+  const child = spawn(appPath, [], {
+    detached: true,
+    stdio: "ignore",
+    windowsHide: false,
+  });
+  child.unref();
   return { ok: true, message: `Launched app: ${appPath}` };
 }
 

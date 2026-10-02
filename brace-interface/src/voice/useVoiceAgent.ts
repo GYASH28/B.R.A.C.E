@@ -1,15 +1,19 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChatMessage, VoiceConfig, VoiceOrbState, VoiceStatus } from "../types";
 import { mergeVoiceConfig } from "./voiceStateStore";
 import { useAudioPlayer } from "./useAudioPlayer";
 import { useAudioRecorder } from "./useAudioRecorder";
+import { useGPTLive } from "../live/useGPTLive";
 
 type UseVoiceAgentArgs = {
   sendCommand: (command: string) => Promise<string>;
   addMessage: (message: ChatMessage) => void;
+  history?: ChatMessage[];
+  workspacePath?: string;
+  autoStart?: boolean;
 };
 
-export function useVoiceAgent({ addMessage, sendCommand }: UseVoiceAgentArgs) {
+export function useVoiceAgent({ addMessage, sendCommand, history = [], workspacePath = "", autoStart = false }: UseVoiceAgentArgs) {
   const [config, setConfig] = useState<VoiceConfig>(mergeVoiceConfig());
   const [status, setStatus] = useState<VoiceStatus | null>(null);
   const [orbState, setOrbState] = useState<VoiceOrbState>("idle");
@@ -19,6 +23,9 @@ export function useVoiceAgent({ addMessage, sendCommand }: UseVoiceAgentArgs) {
   const [error, setError] = useState("");
 
   const { speak, speaking, stop: stopSpeaking, voices } = useAudioPlayer(config);
+  const liveMode = config.onlineVoiceEnabled && config.mode === "online-high-quality";
+  const autoStartAttemptedRef = useRef(false);
+  const live = useGPTLive({ history, workspacePath });
 
   const refreshVoiceStatus = useCallback(async () => {
     const [nextConfig, nextStatus] = await Promise.all([
@@ -42,10 +49,11 @@ export function useVoiceAgent({ addMessage, sendCommand }: UseVoiceAgentArgs) {
   }, [config, refreshVoiceStatus]);
 
   const stopAllAudio = useCallback(() => {
+    if (liveMode && (live.connected || live.connecting)) live.disconnect();
     stopSpeaking();
     setOrbState(config.volume <= 0 ? "muted" : "idle");
     void window.braceDesktop?.logVoiceEvent?.({ type: "TTS stopped", detail: { reason: "manual_or_interruption" } });
-  }, [config.volume, stopSpeaking]);
+  }, [config.volume, live.connected, live.connecting, live.disconnect, liveMode, stopSpeaking]);
 
   const handleTranscript = useCallback(async (text: string) => {
     const clean = text.trim();
@@ -93,16 +101,28 @@ export function useVoiceAgent({ addMessage, sendCommand }: UseVoiceAgentArgs) {
   const startListening = useCallback(async () => {
     setError("");
     if (speaking && config.interruptionEnabled) stopSpeaking();
+    await window.braceDesktop?.logVoiceEvent?.({ type: "mic started", detail: { mode: config.mode, live: liveMode } });
+    if (liveMode) {
+      setOrbState("thinking");
+      try {
+        await live.connect();
+      } catch (cause) {
+        const message = cause instanceof Error ? cause.message : "GPT-Live failed to connect.";
+        setError(message);
+        setOrbState("error");
+      }
+      return;
+    }
     setOrbState("listening");
-    await window.braceDesktop?.logVoiceEvent?.({ type: "mic started", detail: { mode: config.mode } });
     await recorder.start();
-  }, [config.interruptionEnabled, config.mode, recorder, speaking, stopSpeaking]);
+  }, [config.interruptionEnabled, config.mode, live.connect, liveMode, recorder, speaking, stopSpeaking]);
 
   const stopListening = useCallback(() => {
-    recorder.stop();
+    if (liveMode) live.disconnect();
+    else recorder.stop();
     setOrbState("idle");
-    void window.braceDesktop?.logVoiceEvent?.({ type: "mic stopped", detail: {} });
-  }, [recorder]);
+    void window.braceDesktop?.logVoiceEvent?.({ type: "mic stopped", detail: { live: liveMode } });
+  }, [live.disconnect, liveMode, recorder]);
 
   const previewVoice = useCallback(async () => {
     const sample = "B.R.A.C.E voice online. I am ready to listen, think, and respond.";
@@ -118,14 +138,36 @@ export function useVoiceAgent({ addMessage, sendCommand }: UseVoiceAgentArgs) {
 
   const browserVoiceOptions = useMemo(() => voices.map((voice) => ({ id: voice.name, label: voice.name, description: `${voice.lang}${voice.localService ? " local" : ""}` })), [voices]);
 
+  useEffect(() => {
+    if (!autoStart) {
+      autoStartAttemptedRef.current = false;
+      return;
+    }
+    if (!liveMode || live.connected || live.connecting || autoStartAttemptedRef.current) return;
+    autoStartAttemptedRef.current = true;
+    const timer = window.setTimeout(() => void startListening(), 450);
+    return () => window.clearTimeout(timer);
+  }, [autoStart, live.connected, live.connecting, liveMode, startListening]);
+
   return {
     ...recorder,
     browserVoiceOptions,
     config,
-    error,
-    lastResponse,
-    orbState: recorder.listening ? "listening" as VoiceOrbState : speaking ? "speaking" as VoiceOrbState : orbState,
-    partialTranscript,
+    error: liveMode ? (live.error || error) : error,
+    isLiveMode: liveMode,
+    lastResponse: liveMode ? live.outputTranscript : lastResponse,
+    listening: liveMode ? (live.connected || live.connecting) : recorder.listening,
+    liveConnected: live.connected,
+    liveSessionId: live.sessionId,
+    liveUsageSeconds: live.usageSeconds,
+    orbState: liveMode
+      ? live.orbState
+      : recorder.listening
+        ? "listening" as VoiceOrbState
+        : speaking
+          ? "speaking" as VoiceOrbState
+          : orbState,
+    partialTranscript: liveMode ? live.inputTranscript : partialTranscript,
     previewVoice,
     refreshVoiceStatus,
     replayLast,
@@ -134,7 +176,8 @@ export function useVoiceAgent({ addMessage, sendCommand }: UseVoiceAgentArgs) {
     status,
     stopAllAudio,
     stopListening,
-    transcript,
+    transcript: liveMode ? live.inputTranscript : transcript,
     updateConfig,
+    volumeLevel: liveMode ? live.volumeLevel : recorder.volumeLevel,
   };
 }

@@ -24,6 +24,7 @@ function createToolRegistry(deps) {
     tool({ name: "command.explain", description: "Explain command risk.", riskLevel: "low", requiredPermission: "shell", supportsDryRun: true, execute: ({ command, cwd }) => commandTools.explainCommand(command, cwd) }),
     tool({ name: "command.run", description: "Run a controlled local command.", riskLevel: "high", requiredPermission: "shell", execute: (input) => commandTools.runCommand(input) }),
     tool({ name: "app.openVSCode", description: "Open a folder in VS Code.", riskLevel: "medium", requiredPermission: "appLaunch", execute: (input) => appTools.openVSCode({ ...input, shell: deps.shell }) }),
+    tool({ name: "app.openSpecificApp", description: "Launch a user-registered desktop application.", riskLevel: "medium", requiredPermission: "appLaunch", execute: (input) => appTools.openSpecificApp(input) }),
     tool({ name: "app.openFolder", description: "Open a folder in File Explorer.", riskLevel: "medium", requiredPermission: "appLaunch", execute: (input) => appTools.openProjectFolder({ ...input, shell: deps.shell }) }),
     tool({ name: "app.openURL", description: "Open a safe URL in the default browser.", riskLevel: "medium", requiredPermission: "appLaunch", execute: (input) => appTools.openURL({ ...input, shell: deps.shell }) }),
     tool({ name: "system.info", description: "Read system status.", riskLevel: "low", requiredPermission: "systemInfo", execute: () => systemTools.getSystemInfo() }),

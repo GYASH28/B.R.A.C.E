@@ -33,7 +33,15 @@ function createPlan({ command, classification, state, context }) {
   } else if (intent === "system_info") {
     addStep("system.info", {}, "low", "systemInfo", "Read system status");
   } else if (intent === "app_launch") {
-    addStep("app.openVSCode", { folderPath: context.workspacePath || projects }, "medium", "appLaunch", "Open VS Code");
+    const lowerCommand = String(command).toLowerCase();
+    const registeredApp = (state.apps || []).find((app) => lowerCommand.includes(String(app.name || "").toLowerCase().replace(/\.[^.]+$/, "")));
+    if (registeredApp?.path) {
+      addStep("app.openSpecificApp", { appPath: registeredApp.path }, "medium", "appLaunch", `Launch ${registeredApp.name}`);
+    } else if (lowerCommand.includes("folder") || lowerCommand.includes("file explorer") || lowerCommand.includes("file manager")) {
+      addStep("app.openFolder", { folderPath: context.workspacePath || projects }, "medium", "appLaunch", "Open project folder");
+    } else {
+      addStep("app.openVSCode", { folderPath: context.workspacePath || projects }, "medium", "appLaunch", "Open VS Code");
+    }
   } else if (intent === "create_project") {
     const name = extractQuotedName(command) || String(command).match(/project\s+(?:called\s+)?([A-Za-z0-9_-]+)/i)?.[1] || "CampusMate";
     const folderPath = path.join(projects, name);
