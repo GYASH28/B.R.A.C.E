@@ -2,7 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { createAgentRuntime } = require("./agent/agentRuntime.cjs");
 const { publicAgentCatalog } = require("./agents/catalog.cjs");
-const { createLiveSession, runLiveDelegation } = require("./live/liveSession.cjs");
+const { createLiveSession } = require("./live/liveSession.cjs");
 const { publicSkills } = require("./skills/skillRegistry.cjs");
 const { createApprovalManager } = require("./agent/approvalManager.cjs");
 const { createExecutor } = require("./agent/executor.cjs");
@@ -225,9 +225,22 @@ function createBackend({ app, dialog, shell, mainWindow }) {
       },
       liveDelegate: async (payload) => {
         try {
-          const result = await runLiveDelegation(stateStore.readState().settings, payload);
-          logger.log("agent", `Live delegation completed via ${result.agentName}`, { model: result.model, effort: result.effort, tier: result.tier });
-          return { ok: true, ...result };
+          const result = await agentRuntime.run({
+            command: String(payload?.task || ""),
+            selectedFile: payload?.selectedFile || null,
+            workspacePath: payload?.workspacePath || undefined,
+          });
+          logger.log("agent", "Live delegation processed through the BRACE agent runtime", {
+            mode: result.mode,
+            provider: result.provider,
+            model: result.model,
+            agent: result.agent,
+          });
+          return {
+            ...result,
+            ok: result.ok !== false,
+            agentName: result.agent || result.provider || "BRACE",
+          };
         } catch (error) {
           logger.log("error", `Live delegation failed: ${error.message}`, {}, "medium", "error");
           return { ok: false, error: error.message };
