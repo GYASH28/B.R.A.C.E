@@ -1,4 +1,5 @@
 const { app, BrowserWindow, Menu, dialog, globalShortcut, ipcMain, nativeTheme, safeStorage, shell } = require("electron");
+const fs = require("node:fs");
 const path = require("node:path");
 const { createBackend } = require("../backend/index.cjs");
 const { startLocalServer } = require("./localServer.cjs");
@@ -92,6 +93,82 @@ function registerHotkeys() {
   }
 }
 
+async function runVisualSmokeIfRequested() {
+  if (process.env.BRACE_VISUAL_SMOKE !== "1" || !mainWindow) return;
+
+  const screenshotPath = path.resolve(
+    process.env.BRACE_VISUAL_SCREENSHOT ||
+      path.join(__dirname, "..", "artifacts", "brace-shell-smoke.png"),
+  );
+
+  try {
+    const deadline = Date.now() + 15000;
+    let ready = false;
+    while (Date.now() < deadline) {
+      ready = await mainWindow.webContents.executeJavaScript(
+        'Boolean(document.querySelector(".brace-shell") && document.querySelector(".brace-orb") && document.querySelector(".brace-composer"))',
+        true,
+      );
+      if (ready) break;
+      await new Promise((resolve) => setTimeout(resolve, 120));
+    }
+    if (!ready) throw new Error("Fresh shell, orb, or composer did not render.");
+
+    const metrics = await mainWindow.webContents.executeJavaScript(`(() => {
+      const rect = (selector) => {
+        const node = document.querySelector(selector);
+        if (!node) return null;
+        const value = node.getBoundingClientRect();
+        return { x: value.x, y: value.y, width: value.width, height: value.height };
+      };
+      return {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        shell: rect(".brace-shell"),
+        orb: rect(".brace-orb"),
+        composer: rect(".brace-composer"),
+        hasPermanentSidebar: Boolean(document.querySelector("aside, nav")),
+        bodyOverflow: getComputedStyle(document.body).overflow,
+      };
+    })()`, true);
+
+    if (!metrics.shell || !metrics.orb || !metrics.composer) {
+      throw new Error("Required fresh-shell elements are missing.");
+    }
+    if (metrics.hasPermanentSidebar) {
+      throw new Error("A permanent sidebar/nav rendered in the fresh shell.");
+    }
+
+    const orbCenter = metrics.orb.x + metrics.orb.width / 2;
+    const viewportCenter = metrics.width / 2;
+    if (Math.abs(orbCenter - viewportCenter) > Math.max(40, metrics.width * 0.04)) {
+      throw new Error(`Orb is not horizontally centered: ${JSON.stringify(metrics)}`);
+    }
+
+    if (
+      metrics.composer.x < 0 ||
+      metrics.composer.y < 0 ||
+      metrics.composer.x + metrics.composer.width > metrics.width + 1 ||
+      metrics.composer.y + metrics.composer.height > metrics.height + 1
+    ) {
+      throw new Error(`Composer is clipped: ${JSON.stringify(metrics)}`);
+    }
+
+    if (metrics.bodyOverflow !== "hidden") {
+      throw new Error(`Desktop shell should not page-scroll: ${JSON.stringify(metrics)}`);
+    }
+
+    fs.mkdirSync(path.dirname(screenshotPath), { recursive: true });
+    const image = await mainWindow.webContents.capturePage();
+    fs.writeFileSync(screenshotPath, image.toPNG());
+    console.log(`BRACE_VISUAL_OK ${metrics.width}x${metrics.height} ${screenshotPath}`);
+    app.exit(0);
+  } catch (error) {
+    console.error(`BRACE_VISUAL_FAIL ${error.message}`);
+    app.exit(1);
+  }
+}
+
 async function createWindow() {
   nativeTheme.themeSource = "dark";
   mainWindow = new BrowserWindow({
@@ -143,6 +220,8 @@ async function createWindow() {
     localServer = local.server;
     await mainWindow.loadURL(`http://127.0.0.1:${local.port}`);
   }
+
+  await runVisualSmokeIfRequested();
 }
 
 app.whenReady().then(async () => {
