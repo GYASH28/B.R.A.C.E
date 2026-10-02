@@ -1,0 +1,26 @@
+name: BRACE CI
+
+on:
+  push:
+    branches:
+      - feature/live-jarvis-os
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: brace-interface
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: brace-interface/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
