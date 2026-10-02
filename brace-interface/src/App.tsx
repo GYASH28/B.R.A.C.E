@@ -839,6 +839,7 @@ function HomePage({
       <div className="flex flex-wrap items-center justify-center gap-2">
         <StatusBadge label={desktopReady ? "Desktop bridge online" : "Browser mode limited"} tone={desktopReady ? "green" : "warn"} />
         <StatusBadge label={voiceReady} tone={voiceAgent.status?.fallbackActive ? "warn" : "cyan"} />
+        {voiceAgent.liveConnected && <StatusBadge label={`Live ${Math.round(voiceAgent.liveUsageSeconds)}s`} tone="cyan" />}
         <StatusBadge label={`AI: ${provider}`} tone={provider === "offline" ? "warn" : "purple"} />
         <StatusBadge label={safeMode ? "Safe Mode on" : "Safe Mode off"} tone={safeMode ? "green" : "warn"} />
       </div>
