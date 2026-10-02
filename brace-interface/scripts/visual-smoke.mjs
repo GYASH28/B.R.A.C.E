@@ -28,8 +28,17 @@ const child = spawn(electronPath, ["--no-sandbox", "."], {
 });
 
 const exitCode = await new Promise((resolve, reject) => {
-  child.once("error", reject);
+  const timeout = setTimeout(() => {
+    child.kill("SIGKILL");
+    reject(new Error("Electron visual smoke timed out after 25 seconds."));
+  }, 25_000);
+
+  child.once("error", (error) => {
+    clearTimeout(timeout);
+    reject(error);
+  });
   child.once("exit", (code, signal) => {
+    clearTimeout(timeout);
     if (signal) reject(new Error(`Electron visual smoke exited via ${signal}`));
     else resolve(code ?? 1);
   });
