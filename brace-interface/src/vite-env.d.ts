@@ -85,6 +85,9 @@ interface Window {
     warmLocalVoice: () => Promise<unknown>;
     transcribeLocalVoice: (payload: { bytes: Uint8Array | number[]; mimeType?: string; language?: string }) => Promise<unknown>;
     synthesizeLocalVoice: (payload: { text: string; voice?: string; speed?: number }) => Promise<unknown>;
+    warmWakeWord: () => Promise<unknown>;
+    predictWakeWord: (payload: { audioBase64: string; threshold?: number; cooldownSeconds?: number }) => Promise<unknown>;
+    resetWakeWord: () => Promise<unknown>;
     clearAllData: () => Promise<unknown>;
     onHotkey: (callback: (name: string) => void) => () => void;
     onAgentEvent: (callback: (payload: unknown) => void) => () => void;
