@@ -150,28 +150,35 @@ export default function App() {
   useEffect(() => {
     const disposeAgent = window.braceDesktop?.onAgentEvent?.((raw) => {
       const event = raw as AgentEvent;
-      const nodeId = event.agent ? `agent:${event.agent}` : event.taskId ? `task:${event.taskId}` : `event:${id()}`;
-      if (event.type === "completed" || event.status === "done") {
+
+      if (event.taskId) setCurrentTaskId(event.taskId);
+
+      if (event.type?.startsWith("task.")) {
+        if (event.type === "task.plan") setOrbState("planning");
+        else if (event.type === "task.status") setOrbState("working");
+        else if (event.type === "task.failed") setOrbState("error");
+        return;
+      }
+
+      if (!event.agent || !event.type?.startsWith("agent.")) return;
+
+      const nodeId = `agent:${event.agent}`;
+      if (event.type === "agent.completed" || event.status === "done") {
         retireAgent(nodeId, "done");
         return;
       }
-      if (event.type === "failed" || event.status === "failed") {
+      if (event.type === "agent.failed" || event.status === "failed") {
         retireAgent(nodeId, "failed");
         return;
       }
-      if (event.taskId) setCurrentTaskId(event.taskId);
-      const detail =
-        event.detail ||
-        event.message ||
-        event.task?.goal ||
-        (event.type === "plan" ? "Planning task" : "Working");
+
       setAgentNode({
         id: nodeId,
         name: prettyAgentName(event),
-        detail: shortText(detail, 68),
-        status: event.status || (event.type === "plan" ? "spawning" : "working"),
+        detail: shortText(event.detail || event.message || "Working", 68),
+        status: event.status || (event.type === "agent.spawned" ? "spawning" : "working"),
       });
-      setOrbState(event.type === "plan" ? "planning" : "working");
+      setOrbState(event.type === "agent.spawned" ? "delegating" : "working");
     });
 
     const disposeApproval = window.braceDesktop?.onApprovalRequest?.((raw) => {
