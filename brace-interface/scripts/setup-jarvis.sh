@@ -10,10 +10,12 @@ version_ge() {
 
 INSTALL_SKILLS=false
 INSTALL_VOICE=true
+RUN_SMOKE=true
 for arg in "$@"; do
   case "$arg" in
     --skills) INSTALL_SKILLS=true ;;
     --no-voice) INSTALL_VOICE=false ;;
+    --skip-smoke) RUN_SMOKE=false ;;
   esac
 done
 
@@ -64,6 +66,19 @@ npm test
 echo "Building production interface..."
 npm run build
 
+if [[ "$RUN_SMOKE" == "true" ]]; then
+  echo
+  echo "Verifying the real Codex app-server connection..."
+  node scripts/smoke-codex.cjs
+
+  if [[ "$INSTALL_VOICE" == "true" ]]; then
+    echo
+    ./scripts/smoke-local-voice.sh
+  fi
+else
+  echo "Skipping real runtime smoke tests (--skip-smoke)."
+fi
+
 ./scripts/install-kubuntu-autostart.sh
 
 if [[ "$INSTALL_SKILLS" == "true" ]]; then
@@ -89,4 +104,5 @@ echo "  • local Kokoro text-to-speech"
 echo "  • your local Second Brain when you connect its folder"
 echo
 echo "No OpenAI API key is required by the Codex-native interface."
+echo "Re-run the full local verification any time with: ./scripts/verify-brace-local.sh"
 echo "On your next KDE login, the prebuilt B.R.A.C.E app will start automatically."
