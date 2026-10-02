@@ -102,6 +102,10 @@ async function runVisualSmokeIfRequested() {
   );
 
   try {
+    mainWindow.show();
+    mainWindow.setFullScreen(true);
+    await new Promise((resolve) => setTimeout(resolve, 650));
+
     const deadline = Date.now() + 15000;
     let ready = false;
     while (Date.now() < deadline) {
