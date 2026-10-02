@@ -1,6 +1,7 @@
 const { callOpenAIResponses } = require("../ai/openaiResponses.cjs");
 const { routeTask } = require("./modelRouter.cjs");
 const { findRelevantSkills } = require("../skills/skillRegistry.cjs");
+const { estimateResponseCost } = require("../ai/costEstimator.cjs");
 
 function buildInstructions(route, skills = []) {
   const skillContext = skills.length
@@ -51,6 +52,7 @@ async function runSubagent({ settings, task, context = {}, requestedAgent }) {
     tier: route.tier,
     complexity: route.complexity,
     skills: skills.map((skill) => skill.name),
+    estimatedCostUsd: estimateResponseCost(route.model, result.usage),
   };
 }
 
