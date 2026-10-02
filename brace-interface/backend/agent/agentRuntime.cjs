@@ -12,7 +12,7 @@ function createAgentRuntime({ stateStore, memoryManager, logger, taskState, appr
     const taskContext = buildContext({ state: stateStore.readState(), memoryManager, selectedFile, workspacePath });
     const classification = classifyIntent(command);
 
-    if (classification.intent === "chat_only" || classification.intent === "planning") {
+    if (classification.intent === "chat_only" || classification.intent === "planning" || classification.intent === "research") {
       try {
         const settings = stateStore.readState().settings;
         const useOrchestrator = settings.aiProvider === "openai" && settings.orchestratedAI !== false;
