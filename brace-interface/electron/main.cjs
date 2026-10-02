@@ -70,6 +70,9 @@ function registerIpc() {
   handle("voice-local:warm", handlers.localVoiceWarm);
   handle("voice-local:transcribe", handlers.localVoiceTranscribe);
   handle("voice-local:synthesize", handlers.localVoiceSynthesize);
+  handle("voice-local:wake-warm", handlers.localVoiceWakeWarm);
+  handle("voice-local:wake-predict", handlers.localVoiceWakePredict);
+  handle("voice-local:wake-reset", handlers.localVoiceWakeReset);
 }
 
 function registerHotkeys() {
