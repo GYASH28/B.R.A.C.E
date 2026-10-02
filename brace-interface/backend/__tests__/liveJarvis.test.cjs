@@ -8,6 +8,9 @@ const { AGENTS } = require("../agents/catalog.cjs");
 const { routeTask } = require("../agents/modelRouter.cjs");
 const { findRelevantSkills } = require("../skills/skillRegistry.cjs");
 const { createLiveSession } = require("../live/liveSession.cjs");
+const { classifyIntent } = require("../agent/intentClassifier.cjs");
+const { callOpenAIResponses } = require("../ai/openaiResponses.cjs");
+const { createSecretStore } = require("../security/secretStore.cjs");
 const { startLocalServer } = require("../../electron/localServer.cjs");
 
 test("BRACE exposes exactly 17 daily-drive specialist agents", () => {
@@ -83,4 +86,53 @@ test("production localhost server serves the built SPA from loopback", async () 
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }
+});
+
+
+test("research language routes to the research path instead of the old browser stub", () => {
+  assert.equal(classifyIntent("Research the latest GPT-Live updates").intent, "research");
+  assert.equal(classifyIntent("Search web for current Kubuntu fixes").intent, "research");
+});
+
+test("Responses wrapper forwards hosted web-search tools", async () => {
+  const originalFetch = global.fetch;
+  let captured;
+  global.fetch = async (_url, init) => {
+    captured = JSON.parse(init.body);
+    return {
+      ok: true,
+      async json() {
+        return { id: "resp_test", output_text: "Research complete.", usage: {} };
+      },
+    };
+  };
+
+  try {
+    const result = await callOpenAIResponses(
+      { openAiApiKey: "sk-test", maxTokens: 1000 },
+      "Research this",
+      { model: "gpt-5.6-luna", effort: "high", tools: [{ type: "web_search" }] },
+    );
+    assert.equal(result.text, "Research complete.");
+    assert.deepEqual(captured.tools, [{ type: "web_search" }]);
+    assert.equal(captured.reasoning.effort, "high");
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test("secret store encrypts API keys when Electron safeStorage is available", () => {
+  const userDataPath = fs.mkdtempSync(path.join(os.tmpdir(), "brace-secrets-"));
+  const fakeSafeStorage = {
+    isEncryptionAvailable: () => true,
+    encryptString: (value) => Buffer.from(`encrypted:${value}`, "utf8"),
+    decryptString: (buffer) => buffer.toString("utf8").replace(/^encrypted:/, ""),
+  };
+  const store = createSecretStore({ userDataPath, safeStorage: fakeSafeStorage });
+  store.set("openAiApiKey", "sk-secret-value");
+  assert.equal(store.has("openAiApiKey"), true);
+  assert.equal(store.get("openAiApiKey"), "sk-secret-value");
+  const raw = fs.readFileSync(store.secretsPath, "utf8");
+  assert.doesNotMatch(raw, /sk-secret-value/);
+  assert.match(raw, /safeStorage/);
 });
