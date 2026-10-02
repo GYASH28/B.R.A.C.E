@@ -62,7 +62,28 @@ export function VoiceSettings({
               ["online-high-quality", "GPT-Live-1 · Full Duplex"],
               ["browser-fallback", "Browser Fallback"],
             ]} />
-            <Select label="Voice" value={config.selectedVoice} onChange={(selectedVoice) => onUpdate({ selectedVoice })} options={voiceOptions.map((voice) => [voice.id, voice.label])} />
+            {config.mode === "online-high-quality" ? (
+              <Select
+                label="GPT-Live voice"
+                value={config.liveVoice ?? "vesper"}
+                onChange={(liveVoice) => onUpdate({ liveVoice })}
+                options={[
+                  ["vesper", "Vesper · British · Masculine"],
+                  ["meridian", "Meridian · North American · Masculine"],
+                  ["ripple", "Ripple · Australian · Masculine"],
+                  ["stone", "Stone · Irish · Masculine"],
+                  ["beacon", "Beacon · Filipino · Masculine"],
+                  ["cinder", "Cinder · Southern US · Masculine"],
+                  ["quartz", "Quartz · Australian · Feminine"],
+                  ["willow", "Willow · Irish · Feminine"],
+                  ["gleam", "Gleam · North American · Feminine"],
+                  ["delta", "Delta · Southern US · Feminine"],
+                  ["marin", "Marin · Default"],
+                ]}
+              />
+            ) : (
+              <Select label="Voice" value={config.selectedVoice} onChange={(selectedVoice) => onUpdate({ selectedVoice })} options={voiceOptions.map((voice) => [voice.id, voice.label])} />
+            )}
             <Select label="Style preset" value={config.stylePreset} onChange={(stylePreset) => onUpdate({ stylePreset })} options={localVoices.map((voice) => [voice.id, voice.label])} />
             <Select label="Language" value={config.language} onChange={(language) => onUpdate({ language })} options={[["en-IN", "English India"], ["en-US", "English US"], ["en-GB", "English UK"], ["hi-IN", "Hindi India"]]} />
           </Panel>
@@ -92,7 +113,7 @@ export function VoiceSettings({
           <Panel title="Safety controls">
             <Toggle checked={config.interruptionEnabled} label="Interruption / barge-in" onClick={() => onUpdate({ interruptionEnabled: !config.interruptionEnabled })} />
             <Toggle checked={config.continuousListening} label="Continuous listening" onClick={() => onUpdate({ continuousListening: !config.continuousListening })} />
-            <Toggle checked={config.wakeWordEnabled} label="Wake word / hands-free mode" onClick={() => onUpdate({ wakeWordEnabled: !config.wakeWordEnabled })} />
+            <Toggle checked={config.wakeWordEnabled} label="Wake word (requires a local hotword engine)" onClick={() => onUpdate({ wakeWordEnabled: !config.wakeWordEnabled })} />
             <Toggle checked={config.onlineVoiceEnabled} label="Enable GPT-Live-1" onClick={() => onUpdate({ onlineVoiceEnabled: !config.onlineVoiceEnabled })} />
             <Toggle checked={config.saveTranscripts} label="Save transcripts" onClick={() => onUpdate({ saveTranscripts: !config.saveTranscripts })} />
             <button className="secondary-button" onClick={() => onUpdate(defaultVoiceConfig)} type="button"><RotateCcw size={16} /> Reset voice</button>
