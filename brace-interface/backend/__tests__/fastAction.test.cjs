@@ -24,3 +24,43 @@ test("fast actions do not hijack complex coding prompts", () => {
   assert.equal(detectFastAction("open the repository and fix the React build"), null);
   assert.equal(detectFastAction("debug my VS Code extension"), null);
 });
+
+
+test("fast action service asks once then executes locally after permission is granted", async () => {
+  const { createFastActionService } = require("../codex/fastActionService.cjs");
+
+  let state = {
+    settings: {},
+    apps: [],
+    permissions: {
+      systemInfo: {
+        label: "System info",
+        description: "Read local system information.",
+        riskLevel: "low",
+        enabled: false,
+        lastUsed: null,
+      },
+    },
+  };
+  const stateStore = {
+    readState: () => structuredClone(state),
+    writeState: (next) => { state = structuredClone(next); },
+  };
+  const service = createFastActionService({
+    stateStore,
+    shell: {},
+    logger: { log() {} },
+  });
+
+  const first = await service.tryRun({ command: "show my RAM" });
+  assert.equal(first.handled, true);
+  assert.equal(first.mode, "permission");
+  assert.equal(first.permissionRequired.name, "systemInfo");
+
+  state.permissions.systemInfo.enabled = true;
+  const second = await service.tryRun({ command: "show my RAM" });
+  assert.equal(second.handled, true);
+  assert.equal(second.direct, true);
+  assert.equal(second.mode, "direct");
+  assert.match(second.text, /^RAM:/);
+});
