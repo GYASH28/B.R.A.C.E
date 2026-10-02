@@ -11,8 +11,8 @@
   --teal: #5eead4;
   --violet: #a78bfa;
   --muted: #8b98aa;
-  --font-display: "Rajdhani", sans-serif;
-  --font-body: "Space Grotesk", sans-serif;
+  --font-display: "Arial Narrow", "Roboto Condensed", "Segoe UI", sans-serif;
+  --font-body: "Segoe UI", Inter, system-ui, sans-serif;
   color-scheme: dark;
   font-family: var(--font-body);
   background: var(--app-bg);
