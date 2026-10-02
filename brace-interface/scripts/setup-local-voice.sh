@@ -40,13 +40,22 @@ fi
 echo "Updating pip..."
 "$VENV/bin/python" -m pip install --upgrade pip wheel setuptools
 
-echo "Installing Faster-Whisper + Kokoro local voice..."
+echo "Installing Faster-Whisper + Kokoro + openWakeWord local voice..."
 "$VENV/bin/python" -m pip install \
   "faster-whisper>=1.2.0" \
   "kokoro>=0.9.4" \
   "soundfile>=0.12.1" \
   "numpy>=1.26" \
-  "misaki[en]"
+  "misaki[en]" \
+  "openwakeword>=0.6.0"
+
+echo
+echo "Downloading the optional local “Hey Jarvis” wake model..."
+"$VENV/bin/python" - <<'PY'
+from openwakeword.utils import download_models
+download_models(model_names=["hey_jarvis"])
+print("Hey Jarvis wake model is available locally.")
+PY
 
 echo
 echo "Local voice environment ready:"
@@ -54,5 +63,8 @@ echo "  Python: $VENV/bin/python"
 echo "  STT: Faster-Whisper (CPU INT8)"
 echo "  TTS: Kokoro 82M"
 echo "  Default B.R.A.C.E voice: bm_george"
+echo "  Wake word: Hey Jarvis (openWakeWord, local)"
 echo
-echo "The first warm-up may download model weights."
+echo "The first warm-up may download Whisper/Kokoro model weights."
+echo "The openWakeWord library is Apache-2.0; its bundled pretrained wake models use CC BY-NC-SA 4.0."
+echo "BRACE downloads the wake model into your local voice environment and does not bundle it in the AppImage."
