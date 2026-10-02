@@ -55,7 +55,10 @@ interface Window {
     saveChat: (messages: unknown[]) => Promise<unknown>;
     clearChat: () => Promise<unknown>;
     askAi: (payload: { prompt: string }) => Promise<GeminiBridgeResult & { provider?: string }>;
-    testAi: () => Promise<unknown>;\n    listAgents: () => Promise<unknown>;\n    createLiveSession: (payload: BridgePayload) => Promise<unknown>;\n    runLiveDelegation: (payload: BridgePayload) => Promise<unknown>;
+    testAi: () => Promise<unknown>;
+    listAgents: () => Promise<unknown>;
+    createLiveSession: (payload: BridgePayload) => Promise<unknown>;
+    runLiveDelegation: (payload: BridgePayload) => Promise<unknown>;
     systemInfo: () => Promise<unknown>;
     selectFiles: () => Promise<unknown>;
     selectFolder: () => Promise<unknown>;
