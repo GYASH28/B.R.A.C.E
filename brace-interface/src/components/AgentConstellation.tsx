@@ -18,11 +18,17 @@ const tierLabel = {
 
 export function AgentConstellation({ liveConnected }: { liveConnected: boolean }) {
   const [agents, setAgents] = useState<AgentProfile[]>([]);
+  const [skillCount, setSkillCount] = useState(0);
 
   useEffect(() => {
     let active = true;
-    void window.braceDesktop?.listAgents?.().then((value) => {
-      if (active && Array.isArray(value)) setAgents(value as AgentProfile[]);
+    void Promise.all([
+      window.braceDesktop?.listAgents?.(),
+      window.braceDesktop?.listSkills?.(),
+    ]).then(([agentValue, skillValue]) => {
+      if (!active) return;
+      if (Array.isArray(agentValue)) setAgents(agentValue as AgentProfile[]);
+      if (Array.isArray(skillValue)) setSkillCount(skillValue.length);
     });
     return () => {
       active = false;
@@ -82,6 +88,7 @@ export function AgentConstellation({ liveConnected }: { liveConnected: boolean }
         <div className="rounded-xl border border-white/5 bg-white/[0.025] px-2 py-2">
           <Cpu size={11} className="mb-1 text-cyan-200" />
           Luna primary
+          <span className="mt-1 block text-[7px] text-slate-600">{skillCount ? `${skillCount} skills` : "skills scan"}</span>
         </div>
         <div className="rounded-xl border border-white/5 bg-white/[0.025] px-2 py-2">
           <Cpu size={11} className="mb-1 text-violet-200" />
