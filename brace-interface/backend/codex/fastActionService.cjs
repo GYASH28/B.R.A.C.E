@@ -130,7 +130,11 @@ function createFastActionService({ stateStore, shell, logger } = {}) {
       ].join(" · ");
     } else if (action.id === "app.vscode") {
       const folder = workspacePath || settings.defaultProjectsFolder || process.cwd();
-      const result = await appTools.openVSCode({ folderPath: folder, shell });
+      const result = await appTools.openVSCode({
+        folderPath: folder,
+        shell,
+        appPath: settings.appPaths?.vscode || "code",
+      });
       text = result.message;
     } else if (action.id === "folder.downloads") {
       const folder = settings.defaultDownloadsFolder || path.join(os.homedir(), "Downloads");
