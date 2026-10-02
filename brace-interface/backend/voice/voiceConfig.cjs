@@ -1,5 +1,6 @@
 const DEFAULT_VOICE_CONFIG = {
   mode: "online-high-quality",
+  liveVoice: "vesper",
   sttProvider: "faster-whisper",
   ttsProvider: "kokoro",
   vadProvider: "silero",
@@ -14,7 +15,7 @@ const DEFAULT_VOICE_CONFIG = {
   minSpeechMs: 300,
   maxRecordingMs: 45000,
   interruptionEnabled: true,
-  wakeWordEnabled: true,
+  wakeWordEnabled: false,
   continuousListening: true,
   onlineVoiceEnabled: true,
   saveRawAudio: false,
