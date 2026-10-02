@@ -11,7 +11,7 @@ function classifyIntent(command) {
   if (includesAny(text, ["research", "search web", "look up online", "lookup online", "latest on", "find online"])) return { intent: "research", confidence: 0.88 };
   if (includesAny(text, ["open chrome", "open browser", "browse to", "open website"])) return { intent: "browser_task", confidence: 0.8 };
   if (includesAny(text, ["create react project", "new react project", "npm create", "vite project"])) return { intent: "create_project", confidence: 0.83 };
-  if (includesAny(text, ["open vs code", "open vscode", "open folder", "open file explorer"])) return { intent: "app_launch", confidence: 0.8 };
+  if (includesAny(text, ["open vs code", "open vscode", "open folder", "open file explorer", "open file manager", "launch app", "open app", "start app", "launch discord", "open discord", "launch spotify", "open spotify"])) return { intent: "app_launch", confidence: 0.8 };
   if (includesAny(text, ["run command", "terminal", "powershell", "cmd"])) return { intent: "terminal_command", confidence: 0.75 };
   if (includesAny(text, ["read this pdf", "summarize file", "make notes", "extract key points"])) return { intent: "file_task", confidence: 0.82 };
   if (includesAny(text, ["plan my day", "routine", "timetable", "schedule"])) return { intent: "planning", confidence: 0.78 };
