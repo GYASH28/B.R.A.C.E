@@ -45,6 +45,11 @@ function registerIpc() {
   handle("apps:delete", handlers.appsDelete);
   handle("apps:launch", handlers.appsLaunch);
   handle("data:clear-all", handlers.clearAllData);
+  handle("codex:status", handlers.codexStatus);
+  handle("codex:run", handlers.codexRun);
+  handle("codex:interrupt", handlers.codexInterrupt);
+  handle("codex:new-thread", handlers.codexNewThread);
+  handle("codex:approval", handlers.codexApproval);
   handle("agent:run", handlers.agentRun);
   handle("agent:approve", handlers.agentApprove);
   handle("agent:reject", handlers.agentReject);
@@ -150,6 +155,7 @@ app.whenReady().then(async () => {
 app.on("will-quit", () => {
   globalShortcut.unregisterAll();
   localServer?.close();
+  void backend?.codexService?.stop?.();
 });
 
 app.on("window-all-closed", () => {
