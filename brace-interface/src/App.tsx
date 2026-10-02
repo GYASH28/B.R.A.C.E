@@ -336,7 +336,7 @@ export default function App() {
 
   const runPrompt = useCallback(async (query: string, { speak = false }: { speak?: boolean } = {}) => {
     const clean = query.trim();
-    if (!clean || busy || !window.braceDesktop || !codex?.ready) return;
+    if (!clean || busy || !window.braceDesktop) return;
 
     const userMessage: ChatMessage = { id: id(), role: "user", text: clean };
     const responseId = id();
@@ -709,7 +709,7 @@ export default function App() {
       <BraceComposer
         value={input}
         busy={busy}
-        disabled={!loaded || !window.braceDesktop || !codex?.ready || Boolean(approval) || Boolean(localPermission)}
+        disabled={!loaded || !window.braceDesktop || Boolean(approval) || Boolean(localPermission)}
         attachmentLabel={attachment?.name}
         onChange={setInput}
         onSend={() => void send()}
