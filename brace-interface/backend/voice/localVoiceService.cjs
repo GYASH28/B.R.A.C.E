@@ -46,6 +46,7 @@ function createLocalVoiceService({
       error: lastError || null,
       voice: "bm_george",
       sttModel: process.env.BRACE_WHISPER_MODEL || "base.en",
+      wakeModel: process.env.BRACE_WAKE_MODEL || "hey_jarvis",
     };
   }
 
@@ -219,6 +220,43 @@ function createLocalVoiceService({
     }
   }
 
+  async function wakeWarm() {
+    await start();
+    const result = await request("wake_warm", {}, 120_000);
+    logger?.log?.("voice", "Local wake-word model ready.", { model: result?.model || "hey_jarvis" }, "low");
+    return { ok: true, ...result };
+  }
+
+  async function wakePredict({ audioBase64, threshold = 0.55, cooldownSeconds = 1.6 }) {
+    await start();
+    const clean = String(audioBase64 || "");
+    if (!clean || clean.length > 64_000) throw new Error("Wake audio payload size is invalid.");
+    const result = await request("wake_predict", {
+      audioBase64: clean,
+      threshold,
+      cooldownSeconds,
+    }, 8_000);
+    if (result?.detected) {
+      logger?.log?.("voice", "Wake word detected.", {
+        model: result?.model,
+        score: result?.score,
+      }, "low");
+      sendEvent("brace:local-voice-event", {
+        type: "event",
+        event: "wake.detected",
+        model: result?.model,
+        score: result?.score,
+      });
+    }
+    return { ok: true, ...result };
+  }
+
+  async function wakeReset() {
+    await start();
+    const result = await request("wake_reset", {}, 8_000);
+    return { ok: true, ...result };
+  }
+
   async function synthesize({ text, voice = "bm_george", speed = 1.0 }) {
     await start();
     const clean = String(text || "").trim().slice(0, 2400);
@@ -250,7 +288,7 @@ function createLocalVoiceService({
     emitStatus();
   }
 
-  return { start, status, warm, transcribeBytes, synthesize, stop };
+  return { start, status, warm, transcribeBytes, synthesize, wakeWarm, wakePredict, wakeReset, stop };
 }
 
 module.exports = { createLocalVoiceService };
