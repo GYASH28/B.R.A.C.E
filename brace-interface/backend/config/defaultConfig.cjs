@@ -24,7 +24,7 @@ function defaultSettings() {
     customEndpoint: process.env.BRACE_CUSTOM_ENDPOINT || "http://127.0.0.1:8000/chat",
     offlineMode: false,
     orchestratedAI: true,
-    liveVoice: "marin",
+    liveVoice: "vesper",
     safeMode: true,
     voiceRate: 1,
     voicePitch: 1,
