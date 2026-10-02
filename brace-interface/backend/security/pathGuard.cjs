@@ -9,14 +9,22 @@ const DEFAULT_BLOCKED_ROOTS = [
   path.join(os.homedir(), "AppData"),
 ];
 
+function isWindowsStyle(value) {
+  return /^[a-zA-Z]:[\\/]/.test(String(value ?? ""));
+}
+
 function normalizePath(value) {
-  return path.resolve(String(value ?? ""));
+  const raw = String(value ?? "");
+  return isWindowsStyle(raw) ? path.win32.resolve(raw) : path.resolve(raw);
 }
 
 function isInside(childPath, rootPath) {
   const child = normalizePath(childPath).toLowerCase();
   const root = normalizePath(rootPath).toLowerCase();
-  return child === root || child.startsWith(`${root}${path.sep.toLowerCase()}`);
+  const windowsStyle = isWindowsStyle(child) || isWindowsStyle(root);
+  const separator = windowsStyle ? "\\" : path.sep;
+  const rootWithoutTrailingSeparator = root.replace(/[\\/]+$/, "");
+  return child === root || child === rootWithoutTrailingSeparator || child.startsWith(`${rootWithoutTrailingSeparator}${separator}`);
 }
 
 function createPathGuard({ safeRoots = [], blockedRoots = DEFAULT_BLOCKED_ROOTS } = {}) {
