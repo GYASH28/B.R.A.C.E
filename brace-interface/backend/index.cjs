@@ -270,7 +270,9 @@ function createBackend({ app, dialog, shell, mainWindow }) {
       appsAdd: async () => {
         const state = stateStore.readState();
         requirePermission(state, "appLaunch");
-        const result = await dialog.showOpenDialog({ title: "Select app executable", properties: ["openFile"], filters: [{ name: "Executables", extensions: ["exe", "bat", "cmd"] }] });
+        const dialogOptions = { title: "Select app executable", properties: ["openFile"] };
+        if (process.platform === "win32") dialogOptions.filters = [{ name: "Executables", extensions: ["exe", "bat", "cmd"] }];
+        const result = await dialog.showOpenDialog(dialogOptions);
         if (result.canceled) return { ok: true, app: null };
         const appEntry = { id: cryptoId(), name: path.basename(result.filePaths[0]), path: result.filePaths[0], trusted: false, addedAt: new Date().toISOString() };
         state.apps = [appEntry, ...(state.apps || [])];
