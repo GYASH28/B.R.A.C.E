@@ -17,11 +17,9 @@ cat > "$LAUNCHER" <<EOF
 set -euo pipefail
 export PATH="$NODE_DIR:\$PATH"
 cd "$APP_DIR"
-if [ ! -d node_modules ]; then
-  "$NPM_BIN" install
-fi
-if [ ! -f dist/index.html ]; then
-  "$NPM_BIN" run build
+if [ ! -d node_modules ] || [ ! -f dist/index.html ]; then
+  echo "B.R.A.C.E production files are missing. Run scripts/setup-jarvis.sh once." >&2
+  exit 1
 fi
 exec "$NPM_BIN" run launch
 EOF
