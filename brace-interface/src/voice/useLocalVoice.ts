@@ -284,7 +284,7 @@ export function useLocalVoice() {
     analyser.connect(context.destination);
     playSourceRef.current = source;
     sourceNodeRef.current = source;
-    meterNode(context, analyser);
+    meterNode(analyser);
     setSpeaking(true);
 
     await new Promise<void>((resolve) => {
