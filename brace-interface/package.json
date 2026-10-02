@@ -13,7 +13,9 @@
     "dist:win": "npm run build && electron-builder --win portable --x64",
     "preview": "vite preview",
     "launch": "electron .",
-    "dist:linux": "npm run build && electron-builder --linux AppImage --x64"
+    "dist:linux": "npm run build && electron-builder --linux AppImage --x64",
+    "smoke:codex": "node scripts/smoke-codex.cjs",
+    "verify:local": "bash scripts/verify-brace-local.sh"
   },
   "build": {
     "appId": "local.brace.assistant",
