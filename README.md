@@ -4,7 +4,7 @@
 
 ### Brain · Responsive · Agentic · Companion · Engine
 
-**A local-first AI companion, knowledge workspace, and permission-controlled desktop agent for Windows.**
+**A local-first, voice-first AI operating layer with GPT-Live conversation, routed subagents, skills, and permission-controlled desktop actions.**
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=111827)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -23,6 +23,9 @@ The project combines a structured Obsidian-compatible knowledge vault with a Rea
 
 ## Core Capabilities
 
+- GPT-Live-1 full-duplex voice conversation over WebRTC
+- Luna-High default reasoning with Terra/Sol escalation through 17 specialist agents
+- Agent Skills-style `SKILL.md` discovery from local skill repositories
 - Conversational AI with configurable cloud and local providers
 - Local, user-visible memory and notes
 - Obsidian-compatible knowledge vault and dashboards
@@ -31,7 +34,8 @@ The project combines a structured Obsidian-compatible knowledge vault with a Rea
 - Permission-controlled file, terminal, browser, app, and coding tools
 - Safe Electron IPC between the desktop interface and modular backend
 - PDF and document parsing for local knowledge workflows
-- Windows desktop packaging
+- Windows portable packaging and Linux AppImage packaging
+- Loopback localhost production server and KDE/Kubuntu autostart
 - System-information and local-environment awareness
 
 ## Safety Model
@@ -59,9 +63,9 @@ Command execution and code edits should require user approval. Secrets are expec
 |---|---|
 | Knowledge vault | Structured notes, dashboards, projects, studies, journals, templates, and automation data |
 | React interface | Chat, projects, access controls, settings, voice states, memory views, and system UI |
-| Electron shell | Windows desktop runtime and safe IPC bridge |
+| Electron shell | Cross-platform desktop runtime, localhost production server, and safe IPC bridge |
 | Modular backend | Agent runtime, provider routing, memory, security, documents, voice, and tools |
-| AI providers | Ollama, Gemini, OpenAI-compatible APIs, OpenRouter-compatible APIs, LM Studio, and custom endpoints |
+| AI providers | GPT-Live-1 for voice; GPT-5.6 Luna/Terra/Sol through Responses; Ollama, Gemini, OpenAI-compatible APIs, LM Studio, and custom endpoints |
 | Local data | User-visible notes, memory, settings, and logs |
 
 ## Technology Stack
@@ -91,6 +95,21 @@ Command execution and code edits should require user approval. Secrets are expec
 ```
 
 ## Run the Interface
+
+### Kubuntu / Linux Jarvis setup
+
+```bash
+cd brace-interface
+chmod +x scripts/setup-jarvis.sh
+./scripts/setup-jarvis.sh
+npm run launch
+```
+
+Use `./scripts/setup-jarvis.sh --skills` if you also want the optional pinned Codex skill library. The setup script installs KDE autostart so BRACE opens from its local `127.0.0.1` server on login.
+
+Then save an OpenAI API key in **Settings**, enable **Microphone** and **AI model** permissions, and keep **GPT-Live-1 / Online High Quality** enabled.
+
+### Manual dependency install
 
 ```bash
 cd brace-interface
@@ -127,6 +146,12 @@ npm run build
 npm run dist:win
 ```
 
+### Linux AppImage Build
+
+```bash
+npm run dist:linux
+```
+
 ### Tests
 
 ```bash
@@ -135,20 +160,21 @@ npm test
 
 ## Voice System
 
-The voice experience supports:
+GPT-Live-1 is the primary voice layer. It supports full-duplex conversation, natural interruption, and client delegation to BRACE's backend agent runtime. The live session automatically closes after 90 seconds of inactivity so the UI can remain always available without paying for silent voice-session time.
 
-- Idle, listening, thinking, speaking, muted, offline, and error states
-- Push-to-talk and click-to-stop
-- Microphone-level feedback and silence detection
-- Browser fallback speech recognition and synthesis
-- Detection of faster-whisper, Kokoro, Piper, Silero VAD, and edge-tts
-- Interruption when a new voice turn begins
+The interface includes:
+
+- Idle, listening, thinking/delegating, speaking, muted, offline, and error states
+- Reactive Canvas particle orb with low GPU overhead
+- Microphone-level feedback and interruption
+- GPT-Live client delegation into permission-gated local actions
+- Local/browser voice fallback when Live is unavailable
 
 ## Memory
 
 B.R.A.C.E keeps memory and notes local and visible to the user. The exact storage path depends on the local configuration, but memory is designed to remain inspectable rather than hidden inside an opaque remote service.
 
-Secrets should be redacted before memory or logs are written.
+Secrets are stored separately from normal app state. Electron `safeStorage` is used when the OS keychain is available, with a restricted local-file fallback.
 
 ## Documentation
 
