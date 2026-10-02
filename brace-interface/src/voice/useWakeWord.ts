@@ -19,8 +19,8 @@ const TARGET_RATE = 16000;
 const FRAME_SAMPLES = 1280;
 const MAX_QUEUED_FRAMES = 6;
 
-function concatInt16(left: Int16Array, right: Int16Array) {
-  if (!left.length) return right;
+function concatInt16(left: Int16Array, right: Int16Array): Int16Array<ArrayBuffer> {
+  if (!left.length) return new Int16Array(right);
   const merged = new Int16Array(left.length + right.length);
   merged.set(left, 0);
   merged.set(right, left.length);
