@@ -147,7 +147,7 @@ export function useLocalVoice() {
     };
   }, [refreshStatus, stopSpeaking, stopStream, warm]);
 
-  const meterNode = useCallback((context: AudioContext, analyser: AnalyserNode) => {
+  const meterNode = useCallback((analyser: AnalyserNode) => {
     analyser.fftSize = 256;
     analyser.smoothingTimeConstant = 0.72;
     const values = new Uint8Array(analyser.frequencyBinCount);
@@ -213,7 +213,7 @@ export function useLocalVoice() {
       sourceNodeRef.current = source;
       const analyser = context.createAnalyser();
       source.connect(analyser);
-      meterNode(context, analyser);
+      meterNode(analyser);
     }
 
     recorder.start(180);
