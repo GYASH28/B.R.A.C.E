@@ -2,6 +2,9 @@
 set -euo pipefail
 
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+NODE_BIN="$(command -v node)"
+NPM_BIN="$(command -v npm)"
+NODE_DIR="$(dirname "$NODE_BIN")"
 BIN_DIR="$HOME/.local/bin"
 AUTOSTART_DIR="$HOME/.config/autostart"
 LAUNCHER="$BIN_DIR/brace-launch"
@@ -12,14 +15,15 @@ mkdir -p "$BIN_DIR" "$AUTOSTART_DIR"
 cat > "$LAUNCHER" <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
+export PATH="$NODE_DIR:\$PATH"
 cd "$APP_DIR"
 if [ ! -d node_modules ]; then
-  npm install
+  "$NPM_BIN" install
 fi
 if [ ! -f dist/index.html ]; then
-  npm run build
+  "$NPM_BIN" run build
 fi
-exec npm run launch
+exec "$NPM_BIN" run launch
 EOF
 
 chmod +x "$LAUNCHER"
