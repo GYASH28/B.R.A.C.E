@@ -555,3 +555,26 @@ button:focus-visible, textarea:focus-visible {
     transition-duration: .001ms !important;
   }
 }
+
+.brace-status-button {
+  justify-self: center;
+  border: 0;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: transparent;
+  pointer-events: auto;
+  transition: background 160ms ease, color 160ms ease;
+}
+.brace-status-button:hover {
+  background: rgba(255,255,255,.025);
+  color: rgba(230,243,248,.7);
+}
+.approval-path {
+  margin-top: 7px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 9px;
+  color: rgba(221,226,218,.32);
+}
