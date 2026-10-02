@@ -5,7 +5,7 @@ const invoke = (channel, payload) => ipcRenderer.invoke(channel, payload);
 contextBridge.exposeInMainWorld("braceDesktop", {
   platform: process.platform,
   appMode: "desktop",
-  brainPathHint: "C:/Users/Admin/Documents/BRACE-Brain",
+  brainPathHint: "",
   state: () => invoke("state:get"),
   updateSettings: (patch) => invoke("settings:update", patch),
   saveSecret: (payload) => invoke("settings:save-secret", payload),
@@ -66,6 +66,10 @@ contextBridge.exposeInMainWorld("braceDesktop", {
   updateVoiceConfig: (payload) => invoke("voice:config:update", payload),
   listVoiceOptions: () => invoke("voice:voices"),
   logVoiceEvent: (payload) => invoke("voice:log", payload),
+  localVoiceStatus: () => invoke("voice-local:status"),
+  warmLocalVoice: () => invoke("voice-local:warm"),
+  transcribeLocalVoice: (payload) => invoke("voice-local:transcribe", payload),
+  synthesizeLocalVoice: (payload) => invoke("voice-local:synthesize", payload),
   clearAllData: () => invoke("data:clear-all"),
   onHotkey: (callback) => {
     const listener = (_event, name) => callback(name);
@@ -96,6 +100,16 @@ contextBridge.exposeInMainWorld("braceDesktop", {
     const listener = (_event, payload) => callback(payload);
     ipcRenderer.on("brace:codex-approval", listener);
     return () => ipcRenderer.removeListener("brace:codex-approval", listener);
+  },
+  onLocalVoiceStatus: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on("brace:local-voice-status", listener);
+    return () => ipcRenderer.removeListener("brace:local-voice-status", listener);
+  },
+  onLocalVoiceEvent: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on("brace:local-voice-event", listener);
+    return () => ipcRenderer.removeListener("brace:local-voice-event", listener);
   },
   onApprovalRequest: (callback) => {
     const listener = (_event, payload) => callback(payload);
