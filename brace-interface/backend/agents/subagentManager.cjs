@@ -34,12 +34,14 @@ function buildPrompt(task, context = {}) {
 async function runSubagent({ settings, task, context = {}, requestedAgent }) {
   const route = routeTask(task, requestedAgent);
   const skills = findRelevantSkills(task, { roots: settings.skillRoots || [], limit: 2 });
+  const tools = route.agent.id === "researcher" ? [{ type: "web_search" }] : [];
   const result = await callOpenAIResponses(settings, buildPrompt(task, context), {
     model: route.model,
     effort: route.effort,
     mode: route.mode,
     instructions: buildInstructions(route, skills),
     maxOutputTokens: route.tier === "luna" ? 1800 : 3200,
+    tools,
   });
 
   return {
