@@ -1,10 +1,12 @@
 const { app, BrowserWindow, Menu, dialog, globalShortcut, ipcMain, nativeTheme, shell } = require("electron");
 const path = require("node:path");
 const { createBackend } = require("../backend/index.cjs");
+const { startLocalServer } = require("./localServer.cjs");
 
 const isDev = !app.isPackaged;
 let mainWindow = null;
 let backend = null;
+let localServer = null;
 
 function currentWindow() {
   return mainWindow;
@@ -94,7 +96,7 @@ function registerHotkeys() {
   }
 }
 
-function createWindow() {
+async function createWindow() {
   nativeTheme.themeSource = "dark";
   mainWindow = new BrowserWindow({
     width: 1440,
@@ -114,24 +116,30 @@ function createWindow() {
   });
 
   Menu.setApplicationMenu(null);
-  mainWindow.once("ready-to-show", () => mainWindow.show());
+  mainWindow.once("ready-to-show", () => {
+    mainWindow.maximize();
+    mainWindow.show();
+  });
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: "deny" };
   });
 
   if (isDev && process.env.VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
+    await mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
   } else {
-    mainWindow.loadFile(path.join(__dirname, "..", "dist", "index.html"));
+    const distDir = path.join(__dirname, "..", "dist");
+    const local = await startLocalServer({ distDir, preferredPort: 4317 });
+    localServer = local.server;
+    await mainWindow.loadURL(`http://127.0.0.1:${local.port}`);
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   backend = createBackend({ app, dialog, shell, mainWindow: currentWindow });
   backend.ensureState();
   registerIpc();
-  createWindow();
+  await createWindow();
   registerHotkeys();
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -140,6 +148,7 @@ app.whenReady().then(() => {
 
 app.on("will-quit", () => {
   globalShortcut.unregisterAll();
+  localServer?.close();
 });
 
 app.on("window-all-closed", () => {
