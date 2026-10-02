@@ -26,7 +26,10 @@ function registerIpc() {
   handle("chat:save", handlers.chatSave);
   handle("chat:clear", handlers.chatClear);
   handle("ai:chat", handlers.askAi);
-  handle("ai:test", handlers.aiTest);\n  handle("agents:catalog", handlers.agentsCatalog);\n  handle("live:create-session", handlers.liveCreateSession);\n  handle("live:delegate", handlers.liveDelegate);
+  handle("ai:test", handlers.aiTest);
+  handle("agents:catalog", handlers.agentsCatalog);
+  handle("live:create-session", handlers.liveCreateSession);
+  handle("live:delegate", handlers.liveDelegate);
   handle("system:get", handlers.systemInfo);
   handle("files:select", handlers.selectFiles);
   handle("folders:select", handlers.selectFolder);
