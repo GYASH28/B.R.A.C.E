@@ -71,6 +71,11 @@ interface Window {
     addApp: () => Promise<unknown>;
     deleteApp: (id: string) => Promise<unknown>;
     launchApp: (app: BridgePayload) => Promise<unknown>;
+    codexStatus: () => Promise<unknown>;
+    codexRun: (payload: BridgePayload) => Promise<unknown>;
+    codexInterrupt: () => Promise<unknown>;
+    codexNewThread: () => Promise<unknown>;
+    codexApproval: (payload: { id: string; allow: boolean; forSession?: boolean }) => Promise<unknown>;
     runAgent: (payload: BridgePayload) => Promise<unknown>;
     approveAgent: (payload: BridgePayload) => Promise<unknown>;
     rejectAgent: (payload: BridgePayload) => Promise<unknown>;
@@ -100,6 +105,10 @@ interface Window {
     clearAllData: () => Promise<unknown>;
     onHotkey: (callback: (name: string) => void) => () => void;
     onAgentEvent: (callback: (payload: unknown) => void) => () => void;
+    onCodexStatus: (callback: (payload: unknown) => void) => () => void;
+    onCodexDelta: (callback: (payload: unknown) => void) => () => void;
+    onCodexEvent: (callback: (payload: unknown) => void) => () => void;
+    onCodexApproval: (callback: (payload: unknown) => void) => () => void;
     onApprovalRequest: (callback: (payload: unknown) => void) => () => void;
   };
 }
