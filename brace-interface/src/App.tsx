@@ -95,7 +95,7 @@ const defaultSettings: SettingsState = {
   customEndpoint: "http://127.0.0.1:8000/chat",
   offlineMode: false,
   orchestratedAI: true,
-  liveVoice: "marin",
+  liveVoice: "vesper",
   safeMode: true,
   voiceRate: 1,
   voicePitch: 1,
