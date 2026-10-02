@@ -5,6 +5,9 @@ const { createBackend } = require("../backend/index.cjs");
 const { startLocalServer } = require("./localServer.cjs");
 
 const isDev = !app.isPackaged;
+const isVisualSmoke = process.env.BRACE_VISUAL_SMOKE === "1";
+const visualWidth = Number(process.env.BRACE_VISUAL_WIDTH || 1440);
+const visualHeight = Number(process.env.BRACE_VISUAL_HEIGHT || 960);
 let mainWindow = null;
 let backend = null;
 let localServer = null;
@@ -94,7 +97,7 @@ function registerHotkeys() {
 }
 
 async function runVisualSmokeIfRequested() {
-  if (process.env.BRACE_VISUAL_SMOKE !== "1" || !mainWindow) return;
+  if (!isVisualSmoke || !mainWindow) return;
 
   const screenshotPath = path.resolve(
     process.env.BRACE_VISUAL_SCREENSHOT ||
@@ -103,8 +106,7 @@ async function runVisualSmokeIfRequested() {
 
   try {
     mainWindow.show();
-    mainWindow.setFullScreen(true);
-    await new Promise((resolve) => setTimeout(resolve, 650));
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
     const deadline = Date.now() + 15000;
     let ready = false;
@@ -176,10 +178,11 @@ async function runVisualSmokeIfRequested() {
 async function createWindow() {
   nativeTheme.themeSource = "dark";
   mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 960,
-    minWidth: 1120,
-    minHeight: 760,
+    width: isVisualSmoke ? visualWidth : 1440,
+    height: isVisualSmoke ? visualHeight : 960,
+    minWidth: isVisualSmoke ? 320 : 1120,
+    minHeight: isVisualSmoke ? 240 : 760,
+    frame: !isVisualSmoke,
     title: "B.R.A.C.E",
     backgroundColor: "#050914",
     show: false,
@@ -194,8 +197,10 @@ async function createWindow() {
 
   Menu.setApplicationMenu(null);
   mainWindow.once("ready-to-show", () => {
-    mainWindow.maximize();
-    mainWindow.setFullScreen(true);
+    if (!isVisualSmoke) {
+      mainWindow.maximize();
+      mainWindow.setFullScreen(true);
+    }
     mainWindow.show();
   });
 
