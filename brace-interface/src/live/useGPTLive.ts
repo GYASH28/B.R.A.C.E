@@ -43,6 +43,7 @@ export function useGPTLive({ history = [], workspacePath = "", idleTimeoutMs = 9
   const closedByUserRef = useRef(false);
   const idleTimerRef = useRef<number | null>(null);
   const pendingDelegationsRef = useRef(0);
+  const connectedRef = useRef(false);
 
   const send = useCallback((event: Record<string, unknown>) => {
     const channel = channelRef.current;
@@ -93,7 +94,7 @@ export function useGPTLive({ history = [], workspacePath = "", idleTimeoutMs = 9
       animationRef.current = requestAnimationFrame(sample);
     };
     sample();
-  }, [clearIdleTimer, stopMeter]);
+  }, [stopMeter]);
 
   const cleanup = useCallback(() => {
     clearIdleTimer();
@@ -111,15 +112,16 @@ export function useGPTLive({ history = [], workspacePath = "", idleTimeoutMs = 9
     peerRef.current = null;
     streamRef.current = null;
     audioRef.current = null;
+    connectedRef.current = false;
     setConnected(false);
     setConnecting(false);
     setSessionId("");
     setOrbState("idle");
-  }, [stopMeter]);
+  }, [clearIdleTimer, stopMeter]);
 
   const touchActivity = useCallback(() => {
     clearIdleTimer();
-    if (!connected || idleTimeoutMs <= 0) return;
+    if (!connectedRef.current || idleTimeoutMs <= 0) return;
     idleTimerRef.current = window.setTimeout(() => {
       if (pendingDelegationsRef.current > 0) {
         touchActivity();
@@ -128,7 +130,7 @@ export function useGPTLive({ history = [], workspacePath = "", idleTimeoutMs = 9
       closeGracefully();
       window.setTimeout(cleanup, 2500);
     }, idleTimeoutMs);
-  }, [clearIdleTimer, closeGracefully, connected, idleTimeoutMs, cleanup]);
+  }, [clearIdleTimer, closeGracefully, idleTimeoutMs, cleanup]);
 
   const handleDelegation = useCallback(async (event: any) => {
     const delegationId = event?.delegation?.id;
@@ -144,6 +146,8 @@ export function useGPTLive({ history = [], workspacePath = "", idleTimeoutMs = 9
         delegation_id: delegationId,
         content: "I need a little more detail before I can run that task.",
       });
+      pendingDelegationsRef.current = Math.max(0, pendingDelegationsRef.current - 1);
+      touchActivity();
       return;
     }
 
@@ -187,6 +191,7 @@ export function useGPTLive({ history = [], workspacePath = "", idleTimeoutMs = 9
     try {
       const event = JSON.parse(String(message.data || "{}"));
       if (event.type === "session.started") {
+        connectedRef.current = true;
         setConnected(true);
         setConnecting(false);
         setSessionId(event?.session?.id || "");
@@ -269,7 +274,10 @@ export function useGPTLive({ history = [], workspacePath = "", idleTimeoutMs = 9
         void speaker.play().catch(() => undefined);
       };
       peer.onconnectionstatechange = () => {
-        if (peer.connectionState === "connected") setConnected(true);
+        if (peer.connectionState === "connected") {
+          connectedRef.current = true;
+          setConnected(true);
+        }
         if (["failed", "closed", "disconnected"].includes(peer.connectionState) && !closedByUserRef.current) {
           setError(`GPT-Live connection ${peer.connectionState}.`);
           setOrbState("error");
