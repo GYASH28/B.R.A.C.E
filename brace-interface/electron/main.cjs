@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, dialog, globalShortcut, ipcMain, nativeTheme, shell } = require("electron");
+const { app, BrowserWindow, Menu, dialog, globalShortcut, ipcMain, nativeTheme, safeStorage, shell } = require("electron");
 const path = require("node:path");
 const { createBackend } = require("../backend/index.cjs");
 const { startLocalServer } = require("./localServer.cjs");
@@ -137,7 +137,7 @@ async function createWindow() {
 }
 
 app.whenReady().then(async () => {
-  backend = createBackend({ app, dialog, shell, mainWindow: currentWindow });
+  backend = createBackend({ app, dialog, safeStorage, shell, mainWindow: currentWindow });
   backend.ensureState();
   registerIpc();
   await createWindow();
