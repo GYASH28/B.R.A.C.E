@@ -113,7 +113,22 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [commandOpen, setCommandOpen] = useState(false);
   const streamingMessageId = useRef<number | null>(null);
-  const voice = useLocalVoice();
+  const speechStreamRef = useRef(false);
+  const speechBufferRef = useRef("");
+  const speechQueuedRef = useRef(false);
+  const {
+    status: voiceStatus,
+    recording: voiceRecording,
+    transcribing: voiceTranscribing,
+    speaking: voiceSpeaking,
+    energy: voiceEnergy,
+    error: voiceError,
+    startListening,
+    stopListening,
+    stopSpeaking,
+    enqueueSpeech,
+    warm: warmVoice,
+  } = useLocalVoice();
 
   const latestAssistant = useMemo(
     () => [...messages].reverse().find((message) => message.role === "assistant"),
@@ -194,14 +209,14 @@ export default function App() {
   }, [loaded, messages]);
 
   useEffect(() => {
-    if (voice.recording) setOrbState("listening");
-    else if (voice.transcribing) setOrbState("transcribing");
-    else if (voice.speaking) setOrbState("speaking");
-  }, [voice.recording, voice.speaking, voice.transcribing]);
+    if (voiceRecording) setOrbState("listening");
+    else if (voiceTranscribing) setOrbState("transcribing");
+    else if (voiceSpeaking) setOrbState("speaking");
+  }, [voiceRecording, voiceSpeaking, voiceTranscribing]);
 
   useEffect(() => {
-    if (voice.error) setNotice(voice.error);
-  }, [voice.error]);
+    if (voiceError) setNotice(voiceError);
+  }, [voiceError]);
 
   useEffect(() => {
     const disposeStatus = window.braceDesktop?.onCodexStatus?.((raw) => {
@@ -216,7 +231,7 @@ export default function App() {
       } else if (next.status === "auth-required") {
         setOrbState("offline");
         setNotice("Codex needs ChatGPT sign-in. Run “codex login” once, then reconnect.");
-      } else if (next.ready && !busy && !approval && !voice.recording && !voice.speaking && !voice.transcribing) {
+      } else if (next.ready && !busy && !approval && !voiceRecording && !voiceSpeaking && !voiceTranscribing) {
         setOrbState("idle");
         if (notice === "Codex lost connection. Restarting…") setNotice("");
       }
@@ -231,6 +246,21 @@ export default function App() {
           ? { ...message, text: `${message.text || ""}${event.delta}` }
           : message,
       ));
+
+      if (speechStreamRef.current) {
+        speechBufferRef.current += event.delta;
+        const parts = speechBufferRef.current.split(/(?<=[.!?])\s+/);
+        if (parts.length > 1) {
+          const remainder = parts.pop() || "";
+          for (const sentence of parts) {
+            const cleanSentence = sentence.trim();
+            if (!cleanSentence) continue;
+            enqueueSpeech(cleanSentence);
+            speechQueuedRef.current = true;
+          }
+          speechBufferRef.current = remainder;
+        }
+      }
     });
 
     const disposeEvent = window.braceDesktop?.onCodexEvent?.((raw) => {
@@ -285,7 +315,7 @@ export default function App() {
       disposeAgent?.();
       disposeApproval?.();
     };
-  }, [approval, busy, notice, retireAgent, setAgentNode, voice.recording, voice.speaking, voice.transcribing]);
+  }, [approval, busy, enqueueSpeech, notice, retireAgent, setAgentNode, voiceRecording, voiceSpeaking, voiceTranscribing]);
 
   const runPrompt = useCallback(async (query: string, { speak = false }: { speak?: boolean } = {}) => {
     const clean = query.trim();
@@ -300,6 +330,9 @@ export default function App() {
     setBusy(true);
     setOrbState("thinking");
     streamingMessageId.current = responseId;
+    speechStreamRef.current = speak;
+    speechBufferRef.current = "";
+    speechQueuedRef.current = false;
     setMessages((current) => [...current, userMessage, pendingResponse]);
 
     try {
@@ -323,14 +356,17 @@ export default function App() {
         setNotice(result.error || "Codex turn failed.");
         window.setTimeout(() => setOrbState(codex?.ready ? "idle" : "offline"), 1700);
       } else if (speak && resolvedText) {
-        setNotice("Preparing local voice…");
-        try {
-          await voice.speak(resolvedText);
-          setNotice("");
-          setOrbState("idle");
-        } catch {
-          setOrbState("idle");
+        speechStreamRef.current = false;
+        const remainingSpeech = speechBufferRef.current.trim();
+        if (remainingSpeech) {
+          enqueueSpeech(remainingSpeech);
+          speechQueuedRef.current = true;
+        } else if (!speechQueuedRef.current) {
+          enqueueSpeech(resolvedText);
+          speechQueuedRef.current = true;
         }
+        speechBufferRef.current = "";
+        setNotice("");
       } else {
         setOrbState("success");
         setNotice([result.decision?.profile, result.model, result.effort].filter(Boolean).join(" · "));
@@ -349,19 +385,21 @@ export default function App() {
       window.setTimeout(() => setOrbState(codex?.ready ? "idle" : "offline"), 1800);
     } finally {
       streamingMessageId.current = null;
+      speechStreamRef.current = false;
+      speechBufferRef.current = "";
       setBusy(false);
       setAttachment(null);
     }
-  }, [attachment, busy, codex?.ready, projects, voice]);
+  }, [attachment, busy, codex?.ready, enqueueSpeech, projects]);
 
   const send = useCallback(async () => {
     await runPrompt(input);
   }, [input, runPrompt]);
 
   const stop = useCallback(async () => {
-    voice.stopSpeaking();
-    if (voice.recording) {
-      try { await voice.stopListening(); } catch {}
+    stopSpeaking();
+    if (voiceRecording) {
+      try { await stopListening(); } catch {}
     }
     await window.braceDesktop?.codexInterrupt();
     streamingMessageId.current = null;
@@ -369,16 +407,16 @@ export default function App() {
     setApproval(null);
     setOrbState(codex?.ready ? "idle" : "offline");
     setNotice("Task stopped");
-  }, [codex?.ready, voice]);
+  }, [codex?.ready, stopListening, stopSpeaking, voiceRecording]);
 
   const toggleVoice = useCallback(async () => {
     if (!window.braceDesktop) return;
 
     try {
-      if (voice.recording) {
+      if (voiceRecording) {
         setOrbState("transcribing");
         setNotice("Transcribing locally…");
-        const transcript = await voice.stopListening();
+        const transcript = await stopListening();
         if (!transcript) {
           setNotice("I didn’t catch anything.");
           setOrbState(codex?.ready ? "idle" : "offline");
@@ -389,8 +427,8 @@ export default function App() {
         return;
       }
 
-      if (voice.speaking) {
-        voice.stopSpeaking();
+      if (voiceSpeaking) {
+        stopSpeaking();
       }
 
       if (busy) {
@@ -399,14 +437,14 @@ export default function App() {
         streamingMessageId.current = null;
       }
 
-      const deps = voice.status?.dependencies;
+      const deps = voiceStatus?.dependencies;
       if (deps && (!deps.fasterWhisper || !deps.kokoro || !deps.soundfile || !deps.numpy)) {
         setNotice("Local voice dependencies are incomplete. Run the BRACE setup script once.");
         setOrbState(codex?.ready ? "idle" : "offline");
         return;
       }
 
-      await voice.startListening();
+      await startListening();
       setNotice("Listening · click the orb or mic again when you’re done");
       setOrbState("listening");
     } catch (error) {
@@ -415,17 +453,17 @@ export default function App() {
       setOrbState("error");
       window.setTimeout(() => setOrbState(codex?.ready ? "idle" : "offline"), 1600);
     }
-  }, [busy, codex?.ready, runPrompt, voice]);
+  }, [busy, codex?.ready, runPrompt, startListening, stopListening, stopSpeaking, voiceRecording, voiceSpeaking, voiceStatus?.dependencies]);
 
   useEffect(() => {
     const dispose = window.braceDesktop?.onHotkey?.((name) => {
       if (name === "startVoice") void toggleVoice();
       if (name === "commandPalette") setCommandOpen(true);
       if (name === "openAssistant") window.focus();
-      if (name === "mute") voice.stopSpeaking();
+      if (name === "mute") stopSpeaking();
     });
     return () => dispose?.();
-  }, [toggleVoice, voice]);
+  }, [stopSpeaking, toggleVoice]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -478,7 +516,7 @@ export default function App() {
   };
 
   const newConversation = async () => {
-    voice.stopSpeaking();
+    stopSpeaking();
     await window.braceDesktop?.codexNewThread();
     setMessages([initialMessage]);
     setActiveAgents([]);
@@ -535,7 +573,7 @@ export default function App() {
         <AgentField nodes={activeAgents} />
 
         <div className="brace-orb-zone">
-          <BraceOrb state={orbState} energy={voice.energy} onClick={() => void toggleVoice()} />
+          <BraceOrb state={orbState} energy={voiceEnergy} onClick={() => void toggleVoice()} />
           <motion.div
             key={orbState}
             initial={{ opacity: 0, y: 4 }}
@@ -601,7 +639,7 @@ export default function App() {
               <button type="button" onClick={() => void newConversation()}>New conversation</button>
               <button type="button" onClick={() => { void connectCodex(); setCommandOpen(false); }}>Reconnect Codex</button>
               <button type="button" onClick={() => void secondBrainAction()}>Second Brain</button>
-              <button type="button" onClick={() => { void voice.warm(); setNotice("Warming local voice…"); setCommandOpen(false); }}>Warm local voice</button>
+              <button type="button" onClick={() => { void warmVoice(); setNotice("Warming local voice…"); setCommandOpen(false); }}>Warm local voice</button>
               <button type="button" onClick={() => { setNotice(`Codex ${codex?.version || "not detected"} · ${codex?.account?.planType || "account unknown"}`); setCommandOpen(false); }}>Runtime status</button>
             </motion.div>
           </motion.div>
