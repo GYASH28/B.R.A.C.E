@@ -114,7 +114,21 @@ async function createWindow() {
   Menu.setApplicationMenu(null);
   mainWindow.once("ready-to-show", () => {
     mainWindow.maximize();
+    mainWindow.setFullScreen(true);
     mainWindow.show();
+  });
+
+  mainWindow.webContents.on("before-input-event", (event, input) => {
+    if (input.type !== "keyDown") return;
+    if (input.key === "F11") {
+      event.preventDefault();
+      mainWindow.setFullScreen(!mainWindow.isFullScreen());
+      return;
+    }
+    if (input.key === "Escape" && mainWindow.isFullScreen()) {
+      event.preventDefault();
+      mainWindow.setFullScreen(false);
+    }
   });
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
