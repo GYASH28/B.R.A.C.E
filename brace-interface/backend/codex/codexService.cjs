@@ -84,9 +84,11 @@ function createCodexService({
   let version = "";
   let account = null;
   let models = [];
-  let threadId = "";
+  const persistedRuntime = stateStore?.readState?.().codexRuntime || {};
+  let threadId = String(persistedRuntime.threadId || "");
   let currentTurnId = "";
-  let currentCwd = "";
+  let currentCwd = String(persistedRuntime.cwd || "");
+  let threadLoaded = false;
   let stderrTail = "";
 
   const pending = new Map();
@@ -102,6 +104,25 @@ function createCodexService({
       // Logging must never break the Codex runtime.
     }
   };
+
+  const developerInstructions = [
+    "You are the reasoning and execution engine for B.R.A.C.E, a local desktop assistant.",
+    "Keep ordinary chat and simple one-step work single-threaded and fast.",
+    "For genuinely complex work where parallel specialist effort materially improves correctness, you may use Codex collaboration/sub-agents, with at most 3 specialists active at once.",
+    "Do not spawn collaborators for greetings, simple questions, app launches, or one-step edits.",
+    "Respect the active sandbox and request approval for actions that require it.",
+    "When using tools, report meaningful progress concisely rather than narrating every low-level operation.",
+  ].join(" ");
+
+  function persistThread() {
+    if (!stateStore?.updateState) return;
+    stateStore.updateState((state) => {
+      state.codexRuntime = threadId
+        ? { threadId, cwd: currentCwd, updatedAt: new Date().toISOString() }
+        : { threadId: "", cwd: "", updatedAt: new Date().toISOString() };
+      return state;
+    });
+  }
 
   const publicStatus = () => ({
     status,
@@ -455,6 +476,7 @@ function createCodexService({
       child.on("exit", (code, signal) => {
         const error = new Error(`Codex app-server exited (${code ?? "?"}${signal ? `, ${signal}` : ""}).`);
         child = null;
+        threadLoaded = false;
         lineReader?.close?.();
         lineReader = null;
         finishPendingWithError(error);
@@ -515,12 +537,40 @@ function createCodexService({
 
   async function ensureThread(cwd, model) {
     const normalizedCwd = path.resolve(cwd || process.cwd());
-    if (threadId && currentCwd === normalizedCwd) return threadId;
+
+    if (threadId && currentCwd === normalizedCwd && threadLoaded) return threadId;
+
+    if (threadId && currentCwd === normalizedCwd && !threadLoaded) {
+      try {
+        const resumed = await request("thread/resume", {
+          threadId,
+          cwd: normalizedCwd,
+          model: model || null,
+          approvalPolicy: "on-request",
+          developerInstructions,
+          excludeTurns: true,
+        }, 20_000);
+        const resumedId = resumed?.thread?.id || resumed?.threadId || threadId;
+        threadId = resumedId;
+        threadLoaded = true;
+        persistThread();
+        sendEvent("brace:codex-event", { type: "thread.resumed", threadId, cwd: currentCwd });
+        emitStatus();
+        return threadId;
+      } catch (error) {
+        log("codex", "Saved Codex thread could not be resumed; starting a fresh thread.", { threadId, error: safeString(error.message, 500) }, "low");
+        threadId = "";
+        currentCwd = "";
+        threadLoaded = false;
+        persistThread();
+      }
+    }
 
     const result = await request("thread/start", {
       cwd: normalizedCwd,
       model: model || null,
       approvalPolicy: "on-request",
+      developerInstructions,
       ephemeral: false,
       serviceName: "B.R.A.C.E",
     }, 20_000);
@@ -528,6 +578,8 @@ function createCodexService({
     threadId = result?.thread?.id || result?.threadId || "";
     if (!threadId) throw new Error("Codex did not return a thread ID.");
     currentCwd = normalizedCwd;
+    threadLoaded = true;
+    persistThread();
     sendEvent("brace:codex-event", { type: "thread.started", threadId, cwd: currentCwd });
     emitStatus();
     return threadId;
@@ -608,6 +660,8 @@ function createCodexService({
     if (currentTurnId) await interrupt().catch(() => {});
     threadId = "";
     currentCwd = "";
+    threadLoaded = false;
+    persistThread();
     emitStatus();
     return { ok: true };
   }
