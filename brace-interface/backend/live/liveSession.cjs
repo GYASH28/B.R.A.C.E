@@ -34,7 +34,7 @@ async function createLiveSession(settings, { sdp, history = [] } = {}) {
         "When a delegated result arrives, explain it naturally rather than reading raw metadata.",
       ].join("\n"),
       input,
-      audio: { output: { voice: settings.liveVoice || "marin" } },
+      audio: { output: { voice: settings.voice?.liveVoice || settings.liveVoice || "vesper" } },
       delegation: { type: "client" },
       store: false,
     },
