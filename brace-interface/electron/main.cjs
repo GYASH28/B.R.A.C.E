@@ -79,6 +79,10 @@ function registerIpc() {
   handle("voice:config:update", handlers.voiceConfigUpdate);
   handle("voice:voices", handlers.voiceVoices);
   handle("voice:log", handlers.voiceLog);
+  handle("voice-local:status", handlers.localVoiceStatus);
+  handle("voice-local:warm", handlers.localVoiceWarm);
+  handle("voice-local:transcribe", handlers.localVoiceTranscribe);
+  handle("voice-local:synthesize", handlers.localVoiceSynthesize);
 }
 
 function registerHotkeys() {
@@ -159,6 +163,7 @@ app.on("will-quit", () => {
   globalShortcut.unregisterAll();
   localServer?.close();
   void backend?.codexService?.stop?.();
+  backend?.localVoiceService?.stop?.();
 });
 
 app.on("window-all-closed", () => {
