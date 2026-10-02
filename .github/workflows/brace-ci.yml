@@ -20,6 +20,10 @@ jobs:
           cache: npm
           cache-dependency-path: brace-interface/package-lock.json
       - run: npm ci
+      - name: Validate local voice scripts
+        run: |
+          python3 -m py_compile scripts/voice/brace_voice_worker.py
+          bash -n scripts/setup-local-voice.sh scripts/smoke-local-voice.sh scripts/setup-jarvis.sh
       - run: npm test
       - run: npm run build
       - name: Visual smoke 1920x1080
