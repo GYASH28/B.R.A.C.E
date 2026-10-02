@@ -48,11 +48,31 @@ After that, KDE launches B.R.A.C.E at login.
 
 ## First-run setup
 
-1. Save an OpenAI API key in Settings.
-2. Enable Microphone and AI model permissions.
-3. Keep Online High Quality voice enabled.
-4. Once microphone permission and a saved OpenAI key exist, B.R.A.C.E can auto-connect the live voice session at startup.
-5. Keep high-risk permissions off until needed.
+For the simplest Kubuntu install:
+
+```bash
+cd brace-interface
+chmod +x scripts/setup-jarvis.sh
+./scripts/setup-jarvis.sh
+```
+
+Add `--skills` only if you also want the optional pinned third-party Codex skill library:
+
+```bash
+./scripts/setup-jarvis.sh --skills
+```
+
+Then:
+
+1. Run `npm run launch` once.
+2. Save an OpenAI API key in Settings.
+3. Enable Microphone and AI model permissions.
+4. Keep GPT-Live-1 / Online High Quality voice enabled.
+5. Once microphone permission and a saved OpenAI key exist, B.R.A.C.E auto-connects a Live session shortly after startup.
+6. Idle Live sessions close automatically after 90 seconds without activity to avoid paying for silence all day.
+7. Keep high-risk permissions off until needed.
+
+The optional skill bootstrap is pinned to a reviewed `my-codex` commit rather than floating `main`.
 
 ## Performance choices
 
