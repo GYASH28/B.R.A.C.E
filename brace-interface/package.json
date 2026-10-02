@@ -15,7 +15,8 @@
     "launch": "electron .",
     "dist:linux": "npm run build && electron-builder --linux AppImage --x64",
     "smoke:codex": "node scripts/smoke-codex.cjs",
-    "verify:local": "bash scripts/verify-brace-local.sh"
+    "verify:local": "bash scripts/verify-brace-local.sh",
+    "verify:visual": "node scripts/visual-smoke.mjs"
   },
   "build": {
     "appId": "local.brace.assistant",
