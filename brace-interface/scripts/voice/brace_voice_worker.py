@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import base64
 import importlib.util
 import json
 import os
@@ -8,6 +9,9 @@ import time
 from pathlib import Path
 
 _whisper_model = None
+_wake_model = None
+_wake_model_name = os.environ.get("BRACE_WAKE_MODEL", "hey_jarvis")
+_last_wake_at = 0.0
 _pipelines = {}
 
 
@@ -27,6 +31,7 @@ def dependency_status():
         "kokoro": module_available("kokoro"),
         "soundfile": module_available("soundfile"),
         "numpy": module_available("numpy"),
+        "openWakeWord": module_available("openwakeword"),
     }
 
 
@@ -46,6 +51,73 @@ def load_whisper():
         "loadMs": round((time.perf_counter() - started) * 1000),
     })
     return _whisper_model
+
+
+def load_wake_model():
+    global _wake_model
+    if _wake_model is not None:
+        return _wake_model
+
+    from openwakeword.model import Model
+
+    started = time.perf_counter()
+    _wake_model = Model(
+        wakeword_models=[_wake_model_name],
+        inference_framework="onnx",
+        vad_threshold=float(os.environ.get("BRACE_WAKE_VAD_THRESHOLD", "0.2")),
+    )
+    emit({
+        "type": "event",
+        "event": "wake.ready",
+        "model": _wake_model_name,
+        "loadMs": round((time.perf_counter() - started) * 1000),
+    })
+    return _wake_model
+
+
+def wake_reset():
+    global _last_wake_at
+    _last_wake_at = 0.0
+    if _wake_model is not None:
+        _wake_model.reset()
+    return {"ok": True, "model": _wake_model_name}
+
+
+def wake_predict(audio_base64, threshold=0.55, cooldown_seconds=1.6):
+    global _last_wake_at
+
+    if not audio_base64:
+        raise ValueError("Wake audio payload is empty.")
+
+    import numpy as np
+
+    raw = base64.b64decode(audio_base64)
+    samples = np.frombuffer(raw, dtype=np.int16)
+    if samples.size < 400:
+        return {
+            "detected": False,
+            "score": 0.0,
+            "model": _wake_model_name,
+            "samples": int(samples.size),
+        }
+
+    model = load_wake_model()
+    prediction = model.predict(samples)
+    score = max((float(value) for value in prediction.values()), default=0.0)
+    now = time.monotonic()
+    cooldown_ready = (now - _last_wake_at) >= float(cooldown_seconds)
+    detected = bool(score >= float(threshold) and cooldown_ready)
+
+    if detected:
+        _last_wake_at = now
+        model.reset()
+
+    return {
+        "detected": detected,
+        "score": score,
+        "model": _wake_model_name,
+        "samples": int(samples.size),
+    }
 
 
 def transcribe(audio_path, language="en"):
@@ -131,6 +203,22 @@ def handle(request):
             pipeline_for_voice(params.get("voice", "bm_george"))
             result["tts"] = "ready"
         return result
+
+    if method == "wake_warm":
+        if not dependency_status()["openWakeWord"]:
+            raise RuntimeError("openWakeWord is not installed.")
+        load_wake_model()
+        return {"ready": True, "model": _wake_model_name}
+
+    if method == "wake_predict":
+        return wake_predict(
+            params.get("audioBase64", ""),
+            params.get("threshold", 0.55),
+            params.get("cooldownSeconds", 1.6),
+        )
+
+    if method == "wake_reset":
+        return wake_reset()
 
     if method == "transcribe":
         audio_path = str(params.get("path") or "")
