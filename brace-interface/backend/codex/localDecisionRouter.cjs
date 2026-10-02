@@ -9,6 +9,7 @@ function routeLocalDecision(command) {
 
   let category = "conversation";
   if (has(/\b(research|search the web|latest|current|look up|find online)\b/)) category = "research";
+  else if (has(/^(open|launch|start)\b/) || has(/\b(ram|cpu|system info|running process|application)\b/)) category = "system";
   else if (has(/\b(debug|bug|code|repo|repository|build|test|typescript|javascript|react|electron|git|refactor|implement|fix)\b/)) category = "coding";
   else if (has(/\b(memory|second brain|obsidian|remember|note|notes|vault)\b/)) category = "memory";
   else if (has(/\b(file|folder|directory|download|document|pdf)\b/)) category = "files";
