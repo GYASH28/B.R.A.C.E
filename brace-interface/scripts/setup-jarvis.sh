@@ -8,6 +8,15 @@ version_ge() {
   printf '%s\n%s\n' "$2" "$1" | sort -V -C
 }
 
+INSTALL_SKILLS=false
+INSTALL_VOICE=true
+for arg in "$@"; do
+  case "$arg" in
+    --skills) INSTALL_SKILLS=true ;;
+    --no-voice) INSTALL_VOICE=false ;;
+  esac
+done
+
 if ! command -v node >/dev/null 2>&1; then
   echo "Node.js is required. Install Node 22.6 or newer, then rerun this script."
   exit 1
@@ -15,23 +24,49 @@ fi
 
 NODE_VERSION="$(node -p 'process.versions.node')"
 if ! version_ge "$NODE_VERSION" "22.6.0"; then
-  echo "Node $NODE_VERSION is too old. B.R.A.C.E GPT-Live needs Node 22.6 or newer."
+  echo "Node $NODE_VERSION is too old. B.R.A.C.E needs Node 22.6 or newer."
+  exit 1
+fi
+
+if ! command -v codex >/dev/null 2>&1; then
+  echo "Codex CLI was not found."
+  echo "Install the current Codex CLI with:"
+  echo "  npm install -g @openai/codex@latest"
+  echo "Then run:"
+  echo "  codex login"
+  exit 1
+fi
+
+echo "Codex: $(codex --version)"
+if ! codex login status >/dev/null 2>&1; then
+  echo
+  echo "Codex is installed but not signed in."
+  echo "Run 'codex login' and sign in with your ChatGPT account, then rerun this script."
   exit 1
 fi
 
 echo "Installing B.R.A.C.E dependencies..."
 npm ci
 
+chmod +x   scripts/install-kubuntu-autostart.sh   scripts/bootstrap-codex-skills.sh   scripts/setup-local-voice.sh
+
+if [[ "$INSTALL_VOICE" == "true" ]]; then
+  echo
+  ./scripts/setup-local-voice.sh
+else
+  echo "Skipping local voice setup (--no-voice)."
+fi
+
+echo
 echo "Running tests..."
 npm test
 
 echo "Building production interface..."
 npm run build
 
-chmod +x scripts/install-kubuntu-autostart.sh scripts/bootstrap-codex-skills.sh
 ./scripts/install-kubuntu-autostart.sh
 
-if [[ "${1:-}" == "--skills" ]]; then
+if [[ "$INSTALL_SKILLS" == "true" ]]; then
   echo
   echo "Installing the optional pinned Codex skill library..."
   ./scripts/bootstrap-codex-skills.sh
@@ -42,11 +77,16 @@ else
 fi
 
 echo
-echo "B.R.A.C.E is prepared for Kubuntu startup."
-echo "Next:"
-echo "  1. Run: npm run launch"
-echo "  2. Open Settings inside B.R.A.C.E and save your OpenAI API key."
-echo "  3. Enable Microphone and AI model permissions."
-echo "  4. Keep GPT-Live-1 / Online High Quality enabled."
+echo "B.R.A.C.E Codex-native setup is complete."
 echo
-echo "On your next KDE login, B.R.A.C.E will launch automatically from localhost."
+echo "Run:"
+echo "  npm run launch"
+echo
+echo "B.R.A.C.E will use:"
+echo "  • your existing Codex / ChatGPT sign-in"
+echo "  • local Faster-Whisper speech recognition"
+echo "  • local Kokoro text-to-speech"
+echo "  • your local Second Brain when you connect its folder"
+echo
+echo "No OpenAI API key is required by the Codex-native interface."
+echo "On your next KDE login, the prebuilt B.R.A.C.E app will start automatically."
