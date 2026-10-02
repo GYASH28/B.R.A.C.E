@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Command, Settings2 } from "lucide-react";
 import { AgentField, type ActiveAgentNode } from "./agents/AgentField";
 import { CodexApprovalOverlay, type CodexApproval } from "./approvals/CodexApprovalOverlay";
+import { PermissionOverlay, type LocalPermission } from "./approvals/PermissionOverlay";
 import { BraceComposer } from "./composer/BraceComposer";
 import { BraceOrb, type BraceOrbState } from "./orb/BraceOrb";
 import { useLocalVoice } from "./voice/useLocalVoice";
@@ -26,6 +27,8 @@ type CodexStatus = {
 
 type CodexResult = {
   ok?: boolean;
+  mode?: string;
+  direct?: boolean;
   text?: string;
   error?: string | null;
   status?: string;
@@ -34,6 +37,7 @@ type CodexResult = {
   model?: string;
   effort?: string;
   memorySources?: Array<{ title?: string; relativePath?: string | null }>;
+  permissionRequired?: LocalPermission;
   decision?: {
     category?: string;
     profile?: string;
@@ -66,6 +70,13 @@ type AgentEvent = {
   status?: ActiveAgentNode["status"];
 };
 
+type LocalPermissionRequest = {
+  permission: LocalPermission;
+  prompt: string;
+  responseId: number;
+  speak: boolean;
+};
+
 type SecondBrainStatus = {
   connected?: boolean;
   path?: string | null;
@@ -88,8 +99,13 @@ function shortText(text: string, max = 220) {
   return compact.length > max ? `${compact.slice(0, max - 1)}…` : compact;
 }
 
-function statusLabel(status: CodexStatus | null, busy: boolean, approval: CodexApproval | null) {
-  if (approval) return "APPROVAL REQUIRED";
+function statusLabel(
+  status: CodexStatus | null,
+  busy: boolean,
+  approval: CodexApproval | null,
+  localPermission: LocalPermissionRequest | null,
+) {
+  if (approval || localPermission) return "APPROVAL REQUIRED";
   if (status?.status === "auth-required") return "AUTH REQUIRED";
   if (status?.status === "restarting") return "RESTARTING";
   if (status?.status === "error") return "ERROR";
@@ -108,6 +124,7 @@ export default function App() {
   const [activeAgents, setActiveAgents] = useState<ActiveAgentNode[]>([]);
   const [codex, setCodex] = useState<CodexStatus | null>(null);
   const [approval, setApproval] = useState<CodexApproval | null>(null);
+  const [localPermission, setLocalPermission] = useState<LocalPermissionRequest | null>(null);
   const [orbState, setOrbState] = useState<BraceOrbState>("offline");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -231,7 +248,7 @@ export default function App() {
       } else if (next.status === "auth-required") {
         setOrbState("offline");
         setNotice("Codex needs ChatGPT sign-in. Run “codex login” once, then reconnect.");
-      } else if (next.ready && !busy && !approval && !voiceRecording && !voiceSpeaking && !voiceTranscribing) {
+      } else if (next.ready && !busy && !approval && !localPermission && !voiceRecording && !voiceSpeaking && !voiceTranscribing) {
         setOrbState("idle");
         if (notice === "Codex lost connection. Restarting…") setNotice("");
       }
@@ -315,7 +332,7 @@ export default function App() {
       disposeAgent?.();
       disposeApproval?.();
     };
-  }, [approval, busy, enqueueSpeech, notice, retireAgent, setAgentNode, voiceRecording, voiceSpeaking, voiceTranscribing]);
+  }, [approval, busy, enqueueSpeech, localPermission, notice, retireAgent, setAgentNode, voiceRecording, voiceSpeaking, voiceTranscribing]);
 
   const runPrompt = useCallback(async (query: string, { speak = false }: { speak?: boolean } = {}) => {
     const clean = query.trim();
@@ -344,6 +361,22 @@ export default function App() {
         workspacePath: projects[0]?.path,
       })) as CodexResult;
 
+      if (result.permissionRequired) {
+        const permissionMessage = `Permission needed: ${result.permissionRequired.label}.`;
+        setMessages((current) => current.map((message) =>
+          message.id === responseId ? { ...message, text: permissionMessage } : message,
+        ));
+        setLocalPermission({
+          permission: result.permissionRequired,
+          prompt: clean,
+          responseId,
+          speak,
+        });
+        setOrbState("awaiting_approval");
+        setNotice("One-time local permission needed");
+        return;
+      }
+
       const finalText = String(result.text || result.error || "").trim();
       const resolvedText = finalText || (result.ok === false ? "Codex could not complete that turn." : "Done.");
 
@@ -369,7 +402,7 @@ export default function App() {
         setNotice("");
       } else {
         setOrbState("success");
-        setNotice([result.decision?.profile, result.model, result.effort].filter(Boolean).join(" · "));
+        setNotice(result.direct ? "LOCAL · INSTANT" : [result.decision?.profile, result.model, result.effort].filter(Boolean).join(" · "));
         window.setTimeout(() => {
           setOrbState("idle");
           setNotice("");
@@ -405,6 +438,7 @@ export default function App() {
     streamingMessageId.current = null;
     setBusy(false);
     setApproval(null);
+    setLocalPermission(null);
     setOrbState(codex?.ready ? "idle" : "offline");
     setNotice("Task stopped");
   }, [codex?.ready, stopListening, stopSpeaking, voiceRecording]);
@@ -489,6 +523,65 @@ export default function App() {
     }
   };
 
+  const allowLocalPermission = async () => {
+    if (!localPermission || !window.braceDesktop) return;
+    const request = localPermission;
+    setLocalPermission(null);
+    setBusy(true);
+    setOrbState("working");
+    setNotice("Running locally…");
+
+    try {
+      await window.braceDesktop.updatePermission({ name: request.permission.name, enabled: true });
+      const result = await window.braceDesktop.codexRun({
+        prompt: request.prompt,
+        workspacePath: projects[0]?.path,
+      }) as CodexResult;
+      const text = String(result.text || result.error || "Done.").trim();
+
+      setMessages((current) => current.map((message) =>
+        message.id === request.responseId ? { ...message, text } : message,
+      ));
+
+      if (result.ok === false) {
+        setOrbState("error");
+        setNotice(result.error || "Local action failed.");
+      } else if (request.speak && text) {
+        enqueueSpeech(text);
+        setNotice("");
+      } else {
+        setOrbState("success");
+        setNotice("LOCAL · INSTANT");
+        window.setTimeout(() => {
+          setOrbState("idle");
+          setNotice("");
+        }, 900);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Local action failed.";
+      setMessages((current) => current.map((item) =>
+        item.id === request.responseId ? { ...item, text: message } : item,
+      ));
+      setOrbState("error");
+      setNotice(message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const denyLocalPermission = () => {
+    if (!localPermission) return;
+    const request = localPermission;
+    setLocalPermission(null);
+    setMessages((current) => current.map((message) =>
+      message.id === request.responseId
+        ? { ...message, text: "Permission denied. I didn’t run that local action." }
+        : message,
+    ));
+    setNotice("Permission not granted");
+    setOrbState(codex?.ready ? "idle" : "offline");
+  };
+
   const approve = async () => {
     if (!approval || !window.braceDesktop) return;
     try {
@@ -521,6 +614,7 @@ export default function App() {
     setMessages([initialMessage]);
     setActiveAgents([]);
     setApproval(null);
+    setLocalPermission(null);
     setNotice("");
     setOrbState(codex?.ready ? "idle" : "offline");
     setCommandOpen(false);
@@ -547,7 +641,7 @@ export default function App() {
     }
   };
 
-  const label = statusLabel(codex, busy, approval);
+  const label = statusLabel(codex, busy, approval, localPermission);
 
   return (
     <main className="brace-shell">
@@ -606,11 +700,16 @@ export default function App() {
       </section>
 
       <CodexApprovalOverlay approval={approval} onApprove={approve} onReject={reject} />
+      <PermissionOverlay
+        permission={localPermission?.permission || null}
+        onAllow={() => void allowLocalPermission()}
+        onDeny={denyLocalPermission}
+      />
 
       <BraceComposer
         value={input}
         busy={busy}
-        disabled={!loaded || !window.braceDesktop || !codex?.ready || Boolean(approval)}
+        disabled={!loaded || !window.braceDesktop || !codex?.ready || Boolean(approval) || Boolean(localPermission)}
         attachmentLabel={attachment?.name}
         onChange={setInput}
         onSend={() => void send()}
