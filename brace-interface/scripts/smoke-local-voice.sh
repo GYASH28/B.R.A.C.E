@@ -19,6 +19,7 @@ import numpy as np
 import soundfile as sf
 from faster_whisper import WhisperModel
 from kokoro import KPipeline
+from openwakeword.model import Model as WakeModel
 
 wav_path = os.environ["BRACE_SMOKE_WAV"]
 phrase = "Brace voice system is ready."
@@ -51,5 +52,14 @@ text = " ".join(segment.text.strip() for segment in segments if segment.text.str
 if not text:
     raise RuntimeError("Faster-Whisper returned an empty transcription.")
 
-print(f"✅ Local voice smoke passed · transcript: {text}")
+wake = WakeModel(
+    wakeword_models=["hey_jarvis"],
+    inference_framework="onnx",
+    vad_threshold=0.2,
+)
+wake_prediction = wake.predict(np.zeros(1280, dtype=np.int16))
+if not isinstance(wake_prediction, dict):
+    raise RuntimeError("openWakeWord did not return a prediction dictionary.")
+
+print(f"✅ Local voice smoke passed · transcript: {text} · Hey Jarvis model loaded")
 PY
