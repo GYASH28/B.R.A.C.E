@@ -76,3 +76,22 @@ test("Linux package keeps the Python voice worker executable outside ASAR", () =
   assert.ok(pkg.build.files.includes("scripts/voice/**/*"));
   assert.ok(pkg.build.asarUnpack.includes("scripts/voice/**/*"));
 });
+
+
+test("wake word remains local, opt-in, and exposed only through narrow voice IPC", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const preload = fs.readFileSync(path.resolve(__dirname, "../../electron/preload.cjs"), "utf8");
+  const setup = fs.readFileSync(path.resolve(__dirname, "../../scripts/setup-local-voice.sh"), "utf8");
+  const worker = fs.readFileSync(path.resolve(__dirname, "../../scripts/voice/brace_voice_worker.py"), "utf8");
+  const defaults = fs.readFileSync(path.resolve(__dirname, "../config/defaultConfig.cjs"), "utf8");
+
+  assert.match(preload, /warmWakeWord/);
+  assert.match(preload, /predictWakeWord/);
+  assert.match(preload, /resetWakeWord/);
+  assert.match(setup, /openwakeword/);
+  assert.match(setup, /download_models\(model_names=\["hey_jarvis"\]\)/);
+  assert.match(worker, /def wake_predict/);
+  assert.match(worker, /inference_framework="onnx"/);
+  assert.match(defaults, /wakeWord:\s*false/);
+});
