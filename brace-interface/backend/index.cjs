@@ -1,6 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { createCodexService } = require("./codex/codexService.cjs");
+const { createFastActionService } = require("./codex/fastActionService.cjs");
 const { routeLocalDecision } = require("./codex/localDecisionRouter.cjs");
 const { createSecondBrainService } = require("./brain/secondBrainService.cjs");
 const { DATA_DIR_NAME, VAULT_PATH, defaultState } = require("./config/defaultConfig.cjs");
@@ -53,6 +54,7 @@ function createBackend({ app, dialog, safeStorage, shell, mainWindow }) {
   const toolRouter = createToolRouter(toolRegistry);
   const sendEvent = (channel, payload) => mainWindow()?.webContents?.send(channel, payload);
   const codexService = createCodexService({ sendEvent, logger, stateStore });
+  const fastActionService = createFastActionService({ stateStore, shell, logger });
   const localVoiceService = createLocalVoiceService({ userDataPath, logger, sendEvent });
 
 
@@ -277,6 +279,16 @@ function createBackend({ app, dialog, safeStorage, shell, mainWindow }) {
         if (!prompt) return { ok: false, error: "Prompt is empty." };
         try {
           const decision = routeLocalDecision(prompt);
+          const fast = await fastActionService.tryRun({
+            command: prompt,
+            workspacePath: payload?.workspacePath || payload?.cwd || undefined,
+          });
+          if (fast.handled) {
+            return {
+              ...fast,
+              decision,
+            };
+          }
           const memory = decision.needsMemory ? secondBrain.buildContext(prompt, { limit: 5, maxChars: 6500 }) : { count: 0, sources: [], context: "" };
           if (memory.count) {
             sendEvent("brace:codex-event", {
