@@ -77,22 +77,22 @@ type ToastState = { kind: "success" | "error" | "info"; text: string } | null;
 type DragFile = FileEntry & { text?: string; source: "drop" | "dialog" };
 
 const defaultSettings: SettingsState = {
-  aiProvider: "gemini",
-  model: "llama3.2",
+  aiProvider: "openai",
+  model: "gpt-5.6-luna",
   apiKey: "",
-  baseUrl: "http://127.0.0.1:11434",
+  baseUrl: "https://api.openai.com/v1",
   temperature: 0.35,
-  maxTokens: 1200,
+  maxTokens: 1800,
   streaming: false,
   localMode: true,
   geminiKey: "",
-  openAiBaseUrl: "http://127.0.0.1:1234/v1",
+  openAiBaseUrl: "https://api.openai.com/v1",
   openAiApiKey: "",
-  openAiModel: "local-model",
+  openAiModel: "gpt-5.6-luna",
   ollamaEndpoint: "http://127.0.0.1:11434",
   ollamaModel: "llama3.2",
   customEndpoint: "http://127.0.0.1:8000/chat",
-  offlineMode: false,
+  offlineMode: false,\n  orchestratedAI: true,\n  liveVoice: "marin",
   safeMode: true,
   voiceRate: 1,
   voicePitch: 1,
@@ -313,7 +313,13 @@ export default function App() {
     return finalText;
   }, [projects, selectedFile, settings.offlineMode]);
 
-  const voiceAgent = useVoiceAgent({ addMessage: addVoiceMessage, sendCommand: runAgentCommand });
+  const voiceAgent = useVoiceAgent({
+    addMessage: addVoiceMessage,
+    sendCommand: runAgentCommand,
+    history: messages,
+    workspacePath: projects[0]?.path,
+    autoStart: loaded && permissions.microphone?.enabled === true && settings.openAiApiKey === "__saved__",
+  });
 
   useEffect(() => {
     const timer = window.setInterval(() => setTime(formatTime()), 1000);
