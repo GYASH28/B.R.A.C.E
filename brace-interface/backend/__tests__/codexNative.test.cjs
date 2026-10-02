@@ -44,3 +44,35 @@ test("Codex model selection falls back to the catalog default without inventing 
   assert.equal(selected.model, "codex-current");
   assert.equal(selected.effort, "medium");
 });
+
+
+test("Codex-native renderer bridge does not expose direct cloud AI or GPT-Live", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const preload = fs.readFileSync(path.resolve(__dirname, "../../electron/preload.cjs"), "utf8");
+
+  assert.match(preload, /codexRun/);
+  assert.match(preload, /localVoiceStatus/);
+  assert.match(preload, /secondBrainStatus/);
+  assert.doesNotMatch(preload, /createLiveSession|runLiveDelegation|settings:save-secret|ai:chat|ai:test/);
+});
+
+test("fresh shell stays orb-first without the old permanent constellation", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const app = fs.readFileSync(path.resolve(__dirname, "../../src/App.tsx"), "utf8");
+
+  assert.match(app, /<BraceOrb/);
+  assert.match(app, /<BraceComposer/);
+  assert.match(app, /<AgentField/);
+  assert.doesNotMatch(app, /AgentConstellation|<aside|<nav/);
+});
+
+test("Linux package keeps the Python voice worker executable outside ASAR", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../../package.json"), "utf8"));
+
+  assert.ok(pkg.build.files.includes("scripts/voice/**/*"));
+  assert.ok(pkg.build.asarUnpack.includes("scripts/voice/**/*"));
+});
