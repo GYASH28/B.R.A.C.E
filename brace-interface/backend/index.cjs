@@ -1,16 +1,8 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { createAgentRuntime } = require("./agent/agentRuntime.cjs");
 const { createCodexService } = require("./codex/codexService.cjs");
 const { routeLocalDecision } = require("./codex/localDecisionRouter.cjs");
 const { createSecondBrainService } = require("./brain/secondBrainService.cjs");
-const { publicAgentCatalog } = require("./agents/catalog.cjs");
-const { createLiveSession } = require("./live/liveSession.cjs");
-const { publicSkills } = require("./skills/skillRegistry.cjs");
-const { createApprovalManager } = require("./agent/approvalManager.cjs");
-const { createExecutor } = require("./agent/executor.cjs");
-const { createTaskStateManager } = require("./agent/taskStateManager.cjs");
-const { testConnection, callProvider } = require("./ai/providerRouter.cjs");
 const { DATA_DIR_NAME, VAULT_PATH, defaultState } = require("./config/defaultConfig.cjs");
 const { createStateStore } = require("./config/stateStore.cjs");
 const { createActivityLogger } = require("./logs/activityLogger.cjs");
@@ -26,7 +18,6 @@ const fileTools = require("./tools/fileTools.cjs");
 const folderTools = require("./tools/folderTools.cjs");
 const appTools = require("./tools/appTools.cjs");
 const systemTools = require("./tools/systemTools.cjs");
-const { createVoiceService } = require("./voice/voiceService.cjs");
 const { createLocalVoiceService } = require("./voice/localVoiceService.cjs");
 
 function cryptoId() {
@@ -54,27 +45,16 @@ function createBackend({ app, dialog, safeStorage, shell, mainWindow }) {
   const logger = createActivityLogger({ stateStore });
   const memoryManager = createMemoryManager({ memoryDir: path.join(vaultDataDir, "memory") });
   const noteManager = createNoteManager({ notesDir: path.join(vaultDataDir, "notes") });
-  const voiceService = createVoiceService({ stateStore, logger });
   const secondBrain = createSecondBrainService({ stateStore, memoryManager, noteManager, logger });
 
   const safeRoots = stateStore.readState().settings.safeFolders || [VAULT_PATH];
   const pathGuard = createPathGuard({ safeRoots });
   const toolRegistry = createToolRegistry({ shell });
   const toolRouter = createToolRouter(toolRegistry);
-  const taskState = createTaskStateManager({ stateStore });
-  const approvals = createApprovalManager({ stateStore });
-  const executor = createExecutor({ toolRouter, stateStore, memoryManager, logger, pathGuard });
   const sendEvent = (channel, payload) => mainWindow()?.webContents?.send(channel, payload);
   const codexService = createCodexService({ sendEvent, logger, stateStore });
   const localVoiceService = createLocalVoiceService({ userDataPath, logger, sendEvent });
 
-  function getSettings() {
-    const settings = { ...stateStore.readState().settings };
-    for (const key of ["apiKey", "geminiKey", "openAiApiKey"]) settings[key] = secretStore.get(key);
-    return settings;
-  }
-
-  const agentRuntime = createAgentRuntime({ stateStore, memoryManager, logger, taskState, approvals, executor, sendEvent, getSettings });
 
   function ensureState() {
     let state = stateStore.readState();
@@ -185,10 +165,6 @@ function createBackend({ app, dialog, safeStorage, shell, mainWindow }) {
     logger,
     memoryManager,
     noteManager,
-    voiceService,
-    taskState,
-    approvals,
-    agentRuntime,
     codexService,
     localVoiceService,
     secondBrain,
@@ -232,52 +208,6 @@ function createBackend({ app, dialog, safeStorage, shell, mainWindow }) {
         });
         logger.log("chat", "Chat history cleared");
         return { ok: true };
-      },
-      askAi: async ({ prompt }) => {
-        try {
-          const result = await callProvider(getSettings(), prompt, {});
-          logger.log("ai", `AI request completed using ${result.provider}`);
-          return { ok: true, text: result.text, provider: result.provider };
-        } catch (error) {
-          logger.log("error", `AI request failed: ${error.message}`, {}, "medium", "error");
-          return { ok: false, error: error.message };
-        }
-      },
-      aiTest: async () => testConnection(getSettings()),
-      agentsCatalog: () => publicAgentCatalog(),
-      skillsList: () => publicSkills(),
-      liveCreateSession: async (payload) => {
-        try {
-          const result = await createLiveSession(getSettings(), payload);
-          logger.log("voice", "GPT-Live WebRTC session created", { sessionId: result?.session?.id || "" });
-          return result;
-        } catch (error) {
-          logger.log("error", `GPT-Live session failed: ${error.message}`, {}, "medium", "error");
-          throw error;
-        }
-      },
-      liveDelegate: async (payload) => {
-        try {
-          const result = await agentRuntime.run({
-            command: String(payload?.task || ""),
-            selectedFile: payload?.selectedFile || null,
-            workspacePath: payload?.workspacePath || undefined,
-          });
-          logger.log("agent", "Live delegation processed through the BRACE agent runtime", {
-            mode: result.mode,
-            provider: result.provider,
-            model: result.model,
-            agent: result.agent,
-          });
-          return {
-            ...result,
-            ok: result.ok !== false,
-            agentName: result.agent || result.provider || "BRACE",
-          };
-        } catch (error) {
-          logger.log("error", `Live delegation failed: ${error.message}`, {}, "medium", "error");
-          return { ok: false, error: error.message };
-        }
       },
       systemInfo: async () => {
         const state = stateStore.readState();
@@ -403,11 +333,6 @@ function createBackend({ app, dialog, safeStorage, shell, mainWindow }) {
       codexInterrupt: () => codexService.interrupt(),
       codexNewThread: () => codexService.newThread(),
       codexApproval: ({ id, allow, forSession }) => codexService.respondApproval(id, Boolean(allow), Boolean(forSession)),
-      agentRun: (payload) => agentRuntime.run(payload),
-      agentApprove: ({ approvalId }) => agentRuntime.approve(approvalId),
-      agentReject: ({ approvalId }) => agentRuntime.reject(approvalId),
-      agentCancel: ({ taskId }) => agentRuntime.cancel(taskId),
-      agentList: () => ({ tasks: taskState.listTasks(), approvals: approvals.listApprovals() }),
       toolsList: () => toolRouter.listTools(),
       toolsDryRun: async ({ name, input }) => {
         const tool = toolRouter.getTool(name);
@@ -441,11 +366,6 @@ function createBackend({ app, dialog, safeStorage, shell, mainWindow }) {
         return project;
       },
       projectsList: () => stateStore.readState().projects || [],
-      voiceStatus: () => voiceService.status(),
-      voiceConfigGet: () => voiceService.getConfig(),
-      voiceConfigUpdate: (patch) => voiceService.updateConfig(patch),
-      voiceVoices: () => voiceService.listVoices(),
-      voiceLog: ({ type, detail }) => voiceService.logEvent(type || "voice event", detail || {}),
     },
   };
 }
