@@ -1,4 +1,4 @@
-const { callProvider } = require("../ai/providerRouter.cjs");
+const { callProvider } = require("../ai/providerRouter.cjs");\nconst { runSubagent } = require("../agents/subagentManager.cjs");
 const { requiresApproval } = require("../security/safetyClassifier.cjs");
 const { classifyIntent } = require("./intentClassifier.cjs");
 const { buildContext } = require("./contextBuilder.cjs");
@@ -13,9 +13,30 @@ function createAgentRuntime({ stateStore, memoryManager, logger, taskState, appr
 
     if (classification.intent === "chat_only" || classification.intent === "planning") {
       try {
-        const result = await callProvider(stateStore.readState().settings, command, taskContext);
-        logger.log("ai", `AI response completed using ${result.provider}`, { command }, "low");
-        return { ok: true, mode: "chat", text: result.text, provider: result.provider, classification };
+        const settings = stateStore.readState().settings;
+        const useOrchestrator = settings.aiProvider === "openai" && settings.orchestratedAI !== false;
+        const result = useOrchestrator
+          ? await runSubagent({
+              settings,
+              task: command,
+              context: {
+                recentConversation: taskContext.recentConversation || "",
+                workspacePath,
+              },
+            })
+          : await callProvider(settings, command, taskContext);
+        const provider = result.agentName ? `${result.agentName} · ${result.model}` : result.provider;
+        logger.log("ai", `AI response completed using ${provider}`, { command, model: result.model, agent: result.agent }, "low");
+        return {
+          ok: true,
+          mode: "chat",
+          text: result.text,
+          provider,
+          model: result.model,
+          agent: result.agent,
+          effort: result.effort,
+          classification,
+        };
       } catch (error) {
         logger.log("error", `AI request failed: ${error.message}`, { command }, "medium", "error");
         return { ok: false, mode: "chat", text: `AI error: ${error.message}`, error: error.message, recovery: recoverySuggestion(error), classification };
