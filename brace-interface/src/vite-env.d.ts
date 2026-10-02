@@ -105,6 +105,10 @@ interface Window {
     updateVoiceConfig: (payload: BridgePayload) => Promise<unknown>;
     listVoiceOptions: () => Promise<unknown>;
     logVoiceEvent: (payload: BridgePayload) => Promise<unknown>;
+    localVoiceStatus: () => Promise<unknown>;
+    warmLocalVoice: () => Promise<unknown>;
+    transcribeLocalVoice: (payload: { bytes: Uint8Array | number[]; mimeType?: string; language?: string }) => Promise<unknown>;
+    synthesizeLocalVoice: (payload: { text: string; voice?: string; speed?: number }) => Promise<unknown>;
     clearAllData: () => Promise<unknown>;
     onHotkey: (callback: (name: string) => void) => () => void;
     onAgentEvent: (callback: (payload: unknown) => void) => () => void;
@@ -112,6 +116,8 @@ interface Window {
     onCodexDelta: (callback: (payload: unknown) => void) => () => void;
     onCodexEvent: (callback: (payload: unknown) => void) => () => void;
     onCodexApproval: (callback: (payload: unknown) => void) => () => void;
+    onLocalVoiceStatus: (callback: (payload: unknown) => void) => () => void;
+    onLocalVoiceEvent: (callback: (payload: unknown) => void) => () => void;
     onApprovalRequest: (callback: (payload: unknown) => void) => () => void;
   };
 }
