@@ -57,6 +57,7 @@ interface Window {
     askAi: (payload: { prompt: string }) => Promise<GeminiBridgeResult & { provider?: string }>;
     testAi: () => Promise<unknown>;
     listAgents: () => Promise<unknown>;
+    listSkills: () => Promise<unknown>;
     createLiveSession: (payload: BridgePayload) => Promise<unknown>;
     runLiveDelegation: (payload: BridgePayload) => Promise<unknown>;
     systemInfo: () => Promise<unknown>;
