@@ -3,6 +3,7 @@ const path = require("node:path");
 const { createAgentRuntime } = require("./agent/agentRuntime.cjs");
 const { publicAgentCatalog } = require("./agents/catalog.cjs");
 const { createLiveSession, runLiveDelegation } = require("./live/liveSession.cjs");
+const { publicSkills } = require("./skills/skillRegistry.cjs");
 const { createApprovalManager } = require("./agent/approvalManager.cjs");
 const { createExecutor } = require("./agent/executor.cjs");
 const { createTaskStateManager } = require("./agent/taskStateManager.cjs");
@@ -211,6 +212,7 @@ function createBackend({ app, dialog, shell, mainWindow }) {
       },
       aiTest: async () => testConnection(stateStore.readState().settings),
       agentsCatalog: () => publicAgentCatalog(),
+      skillsList: () => publicSkills(),
       liveCreateSession: async (payload) => {
         try {
           const result = await createLiveSession(stateStore.readState().settings, payload);
